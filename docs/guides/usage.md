@@ -158,6 +158,8 @@ Use this once per vault. Running it again is safe; existing files are skipped.
 ### `cairn validate`
 
 Checks whether Markdown notes follow `SCHEMA.md` and required frontmatter rules.
+It also blocks common secret-like values such as access keys, provider tokens,
+and private key blocks without printing the detected value.
 
 ```bash
 cairn validate --path ~/brain

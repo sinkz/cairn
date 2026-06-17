@@ -10,6 +10,7 @@ Initial public release.
 
 - Vault initialization profiles for personal, engineering, product, support, and custom use.
 - Markdown/frontmatter validation.
+- Common secret detection during validation without echoing detected values.
 - Incremental SQLite FTS search index.
 - Metadata filters for type, tag, and system.
 - Budgeted retrieval for low-context agent workflows.

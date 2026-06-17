@@ -71,6 +71,7 @@ Cairn atualmente inclui:
 
 - inicialização de vault com perfis;
 - validação;
+- detecção de segredos comuns durante validação;
 - índice local incremental;
 - busca com filtros;
 - recuperação com orçamento de tokens;

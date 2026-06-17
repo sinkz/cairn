@@ -160,6 +160,8 @@ preservados.
 ### `cairn validate`
 
 Verifica se as notas Markdown seguem o `SCHEMA.md` e as regras de frontmatter.
+Ele também bloqueia valores comuns com aparência de segredo, como access keys,
+tokens de provedores e blocos de chave privada, sem imprimir o valor detectado.
 
 ```bash
 cairn validate --path ~/brain

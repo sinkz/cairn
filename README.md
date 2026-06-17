@@ -69,6 +69,7 @@ Cairn currently includes:
 
 - vault initialization profiles;
 - validation;
+- common secret detection during validation;
 - incremental local index;
 - search with filters;
 - budgeted retrieval;

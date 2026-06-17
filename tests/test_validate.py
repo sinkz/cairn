@@ -197,6 +197,31 @@ class ValidateTests(unittest.TestCase):
 
             self.assertEqual(report.errors, [])
 
+    def test_validate_flags_secret_like_values_without_echoing_them(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            secret_value = "AKIAIOSFODNN7EXAMPLE"
+            (root / "knowledge" / "secret.md").write_text(
+                "---\n"
+                "type: Runbook\n"
+                "title: Secret example\n"
+                "description: Should be blocked.\n"
+                "tags: [bug]\n"
+                "timestamp: 2026-06-17T10:00:00Z\n"
+                "---\n\n"
+                "# Context\n\n"
+                f"Do not store AWS access key {secret_value} in notes.\n",
+                encoding="utf-8",
+            )
+
+            report = validate_vault(root)
+
+            messages = "\n".join(issue.message for issue in report.errors)
+            self.assertIn("potential secret", messages)
+            self.assertIn("AWS access key", messages)
+            self.assertNotIn(secret_value, messages)
+
     def test_cli_validate_returns_nonzero_and_prints_error_for_invalid_vault(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

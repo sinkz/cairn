@@ -7,6 +7,7 @@ from pathlib import Path
 from cairn.config import is_excluded, load_config
 from cairn.frontmatter import FrontmatterError, parse_document
 from cairn.schema import parse_schema
+from cairn.secret_scan import scan_text
 
 
 RESERVED_NAMES = {
@@ -77,8 +78,16 @@ def validate_vault(root: Path) -> ValidationReport:
 
     for path in _concept_files(root):
         rel = path.relative_to(root).as_posix()
+        raw = path.read_text(encoding="utf-8")
+        for finding in scan_text(raw):
+            report.errors.append(
+                ValidationIssue(
+                    rel,
+                    f"potential secret detected: {finding.kind} on line {finding.line}",
+                )
+            )
         try:
-            doc = parse_document(path.read_text(encoding="utf-8"))
+            doc = parse_document(raw)
         except FrontmatterError as exc:
             report.errors.append(ValidationIssue(rel, str(exc)))
             continue
