@@ -91,6 +91,25 @@ class BenchTests(unittest.TestCase):
             self.assertEqual(payload["per_topic"][0]["docs"], ["knowledge/mobile-deploy.md"])
             self.assertEqual(payload["per_topic"][0]["filters"], {"system": ["mobile"]})
 
+    def test_passage_benchmark_counts_unique_documents_for_doc_metrics(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            topics = base / "topics.jsonl"
+            topics.write_text(
+                '{"id":"q_passage","query":"jwt expired clock skew auth","mode":"passages","budget":400}\n',
+                encoding="utf-8",
+            )
+            qrels = base / "qrels.tsv"
+            qrels.write_text("q_passage\tknowledge/jwt-clock-skew.md\t3\n", encoding="utf-8")
+
+            result = run_bench("--topics", str(topics), "--qrels", str(qrels))
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            topic = json.loads(result.stdout)["per_topic"][0]
+            self.assertEqual(topic["docs"], ["knowledge/jwt-clock-skew.md"])
+            self.assertLessEqual(topic["recall_at_k"], 1.0)
+            self.assertLessEqual(topic["ndcg_at_k"], 1.0)
+
     def test_benchmark_compare_golden_detects_ranking_regression(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             golden = Path(tmp) / "golden.json"

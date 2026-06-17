@@ -8,7 +8,7 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
+from typing import Iterable, Sequence
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -89,6 +89,17 @@ def _filters(topic: Topic) -> dict[str, object]:
     return out
 
 
+def _unique_ordered(items: Iterable[str]) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for item in items:
+        if item in seen:
+            continue
+        seen.add(item)
+        out.append(item)
+    return out
+
+
 def evaluate_topic(root: Path, topic: Topic, relevant: dict[str, int], default_limit: int) -> dict[str, object]:
     limit = topic.limit or default_limit
     if topic.mode == "passages":
@@ -100,7 +111,7 @@ def evaluate_topic(root: Path, topic: Topic, relevant: dict[str, int], default_l
             tag_filters=topic.tag_filters,
             system_filters=topic.system_filters,
         )
-        docs = [result.path for result in passage_results]
+        docs = _unique_ordered(result.path for result in passage_results)
     else:
         results = search(
             root,
