@@ -62,6 +62,7 @@ def build_parser() -> argparse.ArgumentParser:
     search_cmd = sub.add_parser("search", help="Search the vault.")
     search_cmd.add_argument("query")
     search_cmd.add_argument("--limit", type=int, default=3)
+    search_cmd.add_argument("--ranker", choices=["bm25", "rrf"], default="bm25")
     search_cmd.add_argument("--json", action="store_true")
     search_cmd.add_argument("--type", dest="type_filter", help="Filter results by document type.")
     search_cmd.add_argument("--tag", action="append", default=[], help="Filter results by tag. Can be repeated.")
@@ -73,6 +74,7 @@ def build_parser() -> argparse.ArgumentParser:
     retrieve_cmd.add_argument("--limit", type=int, default=3)
     retrieve_cmd.add_argument("--budget", type=int, default=1000, help="Approximate token budget.")
     retrieve_cmd.add_argument("--mode", choices=["documents", "passages"], default="documents")
+    retrieve_cmd.add_argument("--ranker", choices=["bm25", "rrf"], default="bm25")
     retrieve_cmd.add_argument("--type", dest="type_filter", help="Filter results by document type.")
     retrieve_cmd.add_argument("--tag", action="append", default=[], help="Filter results by tag. Can be repeated.")
     retrieve_cmd.add_argument("--system", action="append", default=[], help="Filter results by system. Can be repeated.")
@@ -253,6 +255,7 @@ def main(argv: list[str] | None = None) -> int:
                 type_filter=args.type_filter,
                 tag_filters=args.tag,
                 system_filters=args.system,
+                ranker=args.ranker,
             )
         except CairnIndexError as exc:
             print(f"ERROR {exc}", file=sys.stderr)
@@ -283,6 +286,7 @@ def main(argv: list[str] | None = None) -> int:
                     type_filter=args.type_filter,
                     tag_filters=args.tag,
                     system_filters=args.system,
+                    ranker=args.ranker,
                 ),
                 end="",
             )

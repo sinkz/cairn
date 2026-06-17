@@ -174,6 +174,44 @@ class IndexerTests(unittest.TestCase):
 
             self.assertEqual(results[0].path, "knowledge/title-signal.md")
 
+    def test_rrf_search_recovers_when_query_contains_extra_terms(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "deploy-secret.md",
+                (
+                    "type: Runbook",
+                    "title: Deploy token rotation",
+                    "description: Update the CI secret after token rotation.",
+                    "tags: [deploy, bug]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                    "signals: [deploy token rotation, ci secret]",
+                ),
+                "# Resolution\n\nUpdate the CI secret and rerun the failed deployment job.\n",
+            )
+            write_concept(
+                root,
+                "kubernetes-noise.md",
+                (
+                    "type: Note",
+                    "title: Kubernetes glossary",
+                    "description: Background terms for cluster operations.",
+                    "tags: [reference]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                    "signals: [kubernetes]",
+                ),
+                "# Context\n\nkubernetes kubernetes kubernetes background.\n",
+            )
+            rebuild_index(root)
+
+            default_results = search(root, "deploy token rotation kubernetes secret", limit=3)
+            fused_results = search(root, "deploy token rotation kubernetes secret", limit=3, ranker="rrf")
+
+            self.assertEqual(default_results, [])
+            self.assertEqual(fused_results[0].path, "knowledge/deploy-secret.md")
+
     def test_metadata_only_match_returns_metadata_snippet(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -482,6 +520,36 @@ class IndexerTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("knowledge/deploy-403.md", result.stdout)
+
+    def test_cli_search_accepts_rrf_ranker(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "deploy-secret.md",
+                (
+                    "type: Runbook",
+                    "title: Deploy token rotation",
+                    "description: Update the CI secret after token rotation.",
+                    "tags: [deploy, bug]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                    "signals: [deploy token rotation, ci secret]",
+                ),
+                "# Resolution\n\nUpdate the CI secret and rerun the failed deployment job.\n",
+            )
+            run_cairn(root, "index", "--rebuild")
+
+            result = run_cairn(
+                root,
+                "search",
+                "deploy token rotation kubernetes secret",
+                "--ranker",
+                "rrf",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("knowledge/deploy-secret.md", result.stdout)
 
     def test_cli_search_type_filter_excludes_other_matching_types(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

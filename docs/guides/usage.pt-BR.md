@@ -229,10 +229,13 @@ Busca no vault e retorna resultados compactos com snippets.
 
 ```bash
 cairn search "deploy 403 workspace access" --path ~/brain --limit 3
+cairn search "deploy token rotation kubernetes secret" --path ~/brain --ranker rrf
 ```
 
 Use antes de abrir documentos completos. Este é o principal comando para
-economizar tokens.
+economizar tokens. O ranker padrão `bm25` é estrito e estável. Use o
+experimental `--ranker rrf` quando a busca mistura sinais corretos com termos
+extras ou variantes lexicais.
 
 Filtros:
 
@@ -255,6 +258,7 @@ Monta um pacote de contexto para LLM dentro de um orçamento aproximado de token
 ```bash
 cairn retrieve "deploy 403" --path ~/brain --limit 3 --budget 800
 cairn retrieve "deploy 403" --path ~/brain --mode passages --budget 500
+cairn retrieve "deploy token rotation kubernetes secret" --path ~/brain --ranker rrf --budget 800
 ```
 
 Use quando um agente precisa de contexto útil imediatamente sem rodar `search` e
@@ -264,6 +268,10 @@ token.
 Use `--mode passages` quando o agente precisa das menores seções úteis em vez de
 documentos completos. A saída de passagem inclui path, heading e intervalo de
 linhas para o agente reabrir o contexto exato se precisar.
+
+Use `--ranker rrf` apenas com recuperação por documento. Ele é útil quando a
+busca estrita padrão não retorna nada porque a query mistura sinais corretos com
+termos extras.
 
 Filtros funcionam como em `search`:
 
@@ -374,10 +382,10 @@ python bench/run_eval.py
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 ```
 
-Tópicos do benchmark podem incluir `mode` e `compare_mode`. Isso permite medir
-se `passages` reduz os tokens retornados contra `documents` para a mesma busca e
-o mesmo julgamento de relevância. A saída do benchmark inclui um resumo
-`comparison` com número de tópicos comparados, tokens candidatos, tokens da linha
-de base e redução agregada de tokens.
+Tópicos do benchmark podem incluir `mode`, `compare_mode`, `ranker` e
+`compare_ranker`. Isso permite medir se `passages` reduz tokens contra
+`documents`, e se rankers experimentais melhoram qualidade contra a linha de
+base `bm25`. A saída do benchmark inclui um resumo `comparison` para
+comparações de redução de tokens.
 
 O runtime usa apenas a biblioteca padrão do Python.

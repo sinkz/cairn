@@ -43,5 +43,8 @@
   ],
   "q16": [
     "knowledge/db-pool-exhausted.md"
+  ],
+  "q17": [
+    "knowledge/deploy-403.md"
   ]
 }

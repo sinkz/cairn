@@ -34,6 +34,7 @@ def retrieve(
     type_filter: str | None = None,
     tag_filters: Sequence[str] = (),
     system_filters: Sequence[str] = (),
+    ranker: str = "bm25",
 ) -> str:
     if limit <= 0:
         raise ValueError("limit must be positive")
@@ -41,6 +42,10 @@ def retrieve(
         raise ValueError("budget must be positive")
     if mode not in {"documents", "passages"}:
         raise ValueError("mode must be 'documents' or 'passages'")
+    if ranker not in {"bm25", "rrf"}:
+        raise ValueError("ranker must be 'bm25' or 'rrf'")
+    if mode == "passages" and ranker != "bm25":
+        raise ValueError("ranker 'rrf' is only supported for document retrieval")
 
     max_chars = budget_tokens * CHARS_PER_TOKEN
     parts: list[str] = []
@@ -85,6 +90,7 @@ def retrieve(
         type_filter=type_filter,
         tag_filters=tag_filters,
         system_filters=system_filters,
+        ranker=ranker,
     ):
         prefix = (
             f"path: {result.path}\n"

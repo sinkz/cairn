@@ -98,20 +98,22 @@ Consensus:
   `cairn retrieve --mode passages`.
 - Added benchmark `compare_mode` support and aggregate comparison metrics to
   compare token usage between document and passage retrieval on the same topic.
+- Added an opt-in document `rrf` ranker and benchmark `ranker` /
+  `compare_ranker` support to measure it against the default `bm25` baseline.
 - Added an agent workflow test that captures, indexes, searches, retrieves,
   checks similarity, and updates a note through the CLI.
 
 Current benchmark result:
 
 ```text
-topics: 16
+topics: 17
 limit: 3
 mean_recall_at_3: 1.0
 mean_mrr_at_3: 1.0
-mean_ndcg_at_3: 0.9896
-full_context_tokens: 36448
-returned_tokens: 3451
-context_reduction: 0.9053
+mean_ndcg_at_3: 0.9902
+full_context_tokens: 38726
+returned_tokens: 4044
+context_reduction: 0.8956
 comparison_topics: 5
 comparison_candidate_tokens: 521
 comparison_baseline_tokens: 1126
@@ -137,6 +139,11 @@ The passage-mode benchmark topics cover deploy resolution, JWT clock skew,
 support escalation steps, hotfix rollback steps, and database pool exhaustion
 resolution. Together they return 521 candidate tokens versus 1126 document-mode
 baseline tokens, a 53.73% reduction while preserving `Recall@3 = 1.0`.
+
+The first RRF benchmark topic covers a noisy query with one extra unrelated term:
+`deploy token rotation kubernetes secret`. The default `bm25` baseline returns no
+documents, while opt-in `rrf` returns `knowledge/deploy-403.md` at rank 1 and
+preserves `Recall@3 = 1.0` for that topic.
 
 ## Next Experiments
 
@@ -175,6 +182,13 @@ Success criteria:
 - no recall regression on current fixtures;
 - improved MRR on synonym and alias-heavy fixtures;
 - minimal latency increase on local vaults.
+
+Status: initial opt-in document RRF is implemented for `cairn search --ranker rrf`
+and `cairn retrieve --ranker rrf`. It fuses the strict query with a broader OR
+lexical query, leaves the default `bm25` behavior unchanged, and is measured
+against `compare_ranker: bm25` in the deterministic benchmark. Next work should
+test safer prefix/inflection variants and passage-mode RRF before considering
+any default ranking change.
 
 ### Duplicate Fingerprints
 

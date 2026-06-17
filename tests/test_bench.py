@@ -60,7 +60,11 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(passage_topic["compare"]["mode"], "documents")
         self.assertGreater(passage_topic["compare"]["returned_tokens"], passage_topic["returned_tokens"])
         self.assertGreaterEqual(passage_topic["compare"]["token_reduction"], 0.2)
-        compare_topics = [item for item in payload["per_topic"] if "compare" in item]
+        compare_topics = [
+            item
+            for item in payload["per_topic"]
+            if "compare" in item and item["compare"]["returned_tokens"] > item["returned_tokens"]
+        ]
         comparison = payload["comparison"]
         self.assertGreaterEqual(comparison["topics"], 4)
         self.assertEqual(comparison["topics"], len(compare_topics))
@@ -70,6 +74,11 @@ class BenchTests(unittest.TestCase):
             sum(item["compare"]["returned_tokens"] for item in compare_topics),
         )
         self.assertGreaterEqual(comparison["token_reduction"], 0.4)
+        rrf_topic = next(item for item in payload["per_topic"] if item.get("ranker") == "rrf")
+        self.assertEqual(rrf_topic["docs"][0], "knowledge/deploy-403.md")
+        self.assertEqual(rrf_topic["recall_at_k"], 1.0)
+        self.assertEqual(rrf_topic["compare"]["ranker"], "bm25")
+        self.assertEqual(rrf_topic["compare"]["recall_at_k"], 0.0)
 
     def test_benchmark_applies_topic_filters(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

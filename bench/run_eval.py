@@ -28,7 +28,9 @@ class Topic:
     tag_filters: tuple[str, ...] = ()
     system_filters: tuple[str, ...] = ()
     mode: str = "documents"
+    ranker: str = "bm25"
     compare_mode: str | None = None
+    compare_ranker: str | None = None
 
 
 def _string_list(value: object) -> tuple[str, ...]:
@@ -55,7 +57,9 @@ def load_topics(path: Path) -> list[Topic]:
                 tag_filters=_string_list(row.get("tag")),
                 system_filters=_string_list(row.get("system")),
                 mode=row.get("mode", "documents") if isinstance(row.get("mode", "documents"), str) else "documents",
+                ranker=row.get("ranker", "bm25") if isinstance(row.get("ranker", "bm25"), str) else "bm25",
                 compare_mode=row.get("compare_mode") if isinstance(row.get("compare_mode"), str) else None,
+                compare_ranker=row.get("compare_ranker") if isinstance(row.get("compare_ranker"), str) else None,
             )
         )
     return topics
@@ -100,9 +104,8 @@ def _unique_ordered(items: Iterable[str]) -> list[str]:
     return out
 
 
-def evaluate_topic(root: Path, topic: Topic, relevant: dict[str, int], default_limit: int) -> dict[str, object]:
-    limit = topic.limit or default_limit
-    if topic.mode == "passages":
+def _topic_docs(root: Path, topic: Topic, limit: int, mode: str, ranker: str) -> list[str]:
+    if mode == "passages":
         passage_results = search_passages(
             root,
             topic.query,
@@ -111,23 +114,37 @@ def evaluate_topic(root: Path, topic: Topic, relevant: dict[str, int], default_l
             tag_filters=topic.tag_filters,
             system_filters=topic.system_filters,
         )
-        docs = _unique_ordered(result.path for result in passage_results)
-    else:
-        results = search(
-            root,
-            topic.query,
-            limit=limit,
-            type_filter=topic.type_filter,
-            tag_filters=topic.tag_filters,
-            system_filters=topic.system_filters,
-        )
-        docs = [result.path for result in results]
+        return _unique_ordered(result.path for result in passage_results)
+    results = search(
+        root,
+        topic.query,
+        limit=limit,
+        type_filter=topic.type_filter,
+        tag_filters=topic.tag_filters,
+        system_filters=topic.system_filters,
+        ranker=ranker,
+    )
+    return [result.path for result in results]
+
+
+def _quality(docs: Sequence[str], relevant: dict[str, int], limit: int) -> dict[str, float]:
     relevant_docs = {doc for doc, rel in relevant.items() if rel > 0}
     retrieved_relevant = [doc for doc in docs[:limit] if doc in relevant_docs]
     first_rank = next((idx for idx, doc in enumerate(docs[:limit], start=1) if doc in relevant_docs), None)
     gains = [relevant.get(doc, 0) for doc in docs[:limit]]
     ideal = sorted(relevant.values(), reverse=True)[:limit]
     ndcg = dcg(gains) / dcg(ideal) if ideal and dcg(ideal) else 0.0
+    return {
+        "recall_at_k": len(retrieved_relevant) / len(relevant_docs) if relevant_docs else 1.0,
+        "mrr_at_k": 1 / first_rank if first_rank else 0.0,
+        "ndcg_at_k": ndcg,
+    }
+
+
+def evaluate_topic(root: Path, topic: Topic, relevant: dict[str, int], default_limit: int) -> dict[str, object]:
+    limit = topic.limit or default_limit
+    docs = _topic_docs(root, topic, limit, topic.mode, topic.ranker)
+    quality = _quality(docs, relevant, limit)
     packet = retrieve(
         root,
         topic.query,
@@ -137,37 +154,45 @@ def evaluate_topic(root: Path, topic: Topic, relevant: dict[str, int], default_l
         type_filter=topic.type_filter,
         tag_filters=topic.tag_filters,
         system_filters=topic.system_filters,
+        ranker=topic.ranker,
     )
     returned_tokens = approx_tokens(packet)
     out: dict[str, object] = {
         "id": topic.id,
         "query": topic.query,
         "mode": topic.mode,
+        "ranker": topic.ranker,
         "limit": limit,
         "filters": _filters(topic),
         "docs": docs,
-        "recall_at_k": len(retrieved_relevant) / len(relevant_docs) if relevant_docs else 1.0,
-        "mrr_at_k": 1 / first_rank if first_rank else 0.0,
-        "ndcg_at_k": ndcg,
+        **quality,
         "returned_tokens": returned_tokens,
         "budget_tokens": topic.budget,
         "within_budget": returned_tokens <= topic.budget,
     }
-    if topic.compare_mode:
+    if topic.compare_mode or topic.compare_ranker:
+        compare_mode = topic.compare_mode or topic.mode
+        compare_ranker = topic.compare_ranker or "bm25"
+        compare_docs = _topic_docs(root, topic, limit, compare_mode, compare_ranker)
+        compare_quality = _quality(compare_docs, relevant, limit)
         compare_packet = retrieve(
             root,
             topic.query,
             limit=limit,
             budget_tokens=topic.budget,
-            mode=topic.compare_mode,
+            mode=compare_mode,
             type_filter=topic.type_filter,
             tag_filters=topic.tag_filters,
             system_filters=topic.system_filters,
+            ranker=compare_ranker,
         )
         compare_tokens = approx_tokens(compare_packet)
         reduction = 0.0 if compare_tokens == 0 else 1 - (returned_tokens / compare_tokens)
         out["compare"] = {
-            "mode": topic.compare_mode,
+            "mode": compare_mode,
+            "ranker": compare_ranker,
+            "docs": compare_docs,
+            **compare_quality,
             "returned_tokens": compare_tokens,
             "token_reduction": round(reduction, 4),
         }
@@ -236,7 +261,12 @@ def main(argv: list[str] | None = None) -> int:
         mean_ndcg = sum(float(item["ndcg_at_k"]) for item in per_topic) / len(per_topic)
         returned_tokens = sum(int(item["returned_tokens"]) for item in per_topic)
         full_context_tokens = full_tokens * len(per_topic)
-        compared = [item for item in per_topic if isinstance(item.get("compare"), dict)]
+        compared = [
+            item
+            for item in per_topic
+            if isinstance(item.get("compare"), dict)
+            and int(item["compare"]["returned_tokens"]) > int(item["returned_tokens"])
+        ]
         comparison_candidate_tokens = sum(int(item["returned_tokens"]) for item in compared)
         comparison_baseline_tokens = sum(int(item["compare"]["returned_tokens"]) for item in compared)
         comparison_reduction = (

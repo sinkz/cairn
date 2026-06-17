@@ -127,6 +127,39 @@ class RetrieverTests(unittest.TestCase):
             self.assertIn("rotate token needle", passage.stdout)
             self.assertLess(len(passage.stdout), len(doc.stdout))
 
+    def test_cli_retrieve_accepts_rrf_ranker(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "deploy-secret.md",
+                (
+                    "type: Runbook",
+                    "title: Deploy token rotation",
+                    "description: Update the CI secret after token rotation.",
+                    "tags: [deploy, bug]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                    "signals: [deploy token rotation, ci secret]",
+                ),
+                "# Resolution\n\nUpdate the CI secret and rerun the failed deployment job.\n",
+            )
+            run_cairn(root, "index", "--rebuild")
+
+            result = run_cairn(
+                root,
+                "retrieve",
+                "deploy token rotation kubernetes secret",
+                "--ranker",
+                "rrf",
+                "--budget",
+                "400",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("knowledge/deploy-secret.md", result.stdout)
+            self.assertIn("Update the CI secret", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

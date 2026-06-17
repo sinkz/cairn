@@ -22,6 +22,7 @@ Cairn keeps that reusable knowledge in a structured, searchable Markdown vault:
 - fast SQLite FTS search;
 - metadata filters and token-budgeted retrieval;
 - partial reads so agents open less context;
+- experimental RRF ranking for noisy queries;
 - duplicate checks before creating new notes.
 
 ## Quick Start
@@ -72,6 +73,7 @@ Cairn currently includes:
 - search with filters;
 - budgeted retrieval;
 - passage-based retrieval;
+- experimental RRF ranker;
 - partial document reads;
 - note creation and append updates;
 - similar-note checks;

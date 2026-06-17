@@ -227,9 +227,13 @@ Searches the vault and returns compact results with snippets.
 
 ```bash
 cairn search "deploy 403 workspace access" --path ~/brain --limit 3
+cairn search "deploy token rotation kubernetes secret" --path ~/brain --ranker rrf
 ```
 
 Use search before opening full documents. This is the main token-saving command.
+The default `bm25` ranker is strict and stable. Use experimental `--ranker rrf`
+when the query may contain extra terms or lexical variants and you want Cairn to
+fuse multiple cheap lexical runs.
 
 Filters:
 
@@ -252,6 +256,7 @@ Builds a context packet for an LLM under an approximate token budget.
 ```bash
 cairn retrieve "deploy 403" --path ~/brain --limit 3 --budget 800
 cairn retrieve "deploy 403" --path ~/brain --mode passages --budget 500
+cairn retrieve "deploy token rotation kubernetes secret" --path ~/brain --ranker rrf --budget 800
 ```
 
 Use this when an agent needs useful context immediately without manually running
@@ -261,6 +266,10 @@ token.
 Use `--mode passages` when the agent needs the smallest useful sections instead
 of full matching documents. Passage output includes the source path, heading,
 and line range so the agent can reopen the exact context if needed.
+
+Use `--ranker rrf` only with document retrieval. It is useful when the strict
+default search returns nothing because the query mixes correct signals with
+extra terms.
 
 Filters work the same way as `search`:
 
@@ -369,10 +378,10 @@ python bench/run_eval.py
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 ```
 
-Benchmark topics may include `mode` and `compare_mode` fields. This lets Cairn
-measure whether `passages` reduce returned tokens against `documents` for the
-same query and relevance judgment. The benchmark output includes a `comparison`
-summary with the number of compared topics, candidate tokens, baseline tokens,
-and aggregate token reduction.
+Benchmark topics may include `mode`, `compare_mode`, `ranker`, and
+`compare_ranker` fields. This lets Cairn measure whether `passages` reduce
+returned tokens against `documents`, and whether experimental rankers improve
+quality against the default `bm25` baseline. The benchmark output includes a
+`comparison` summary for token-reduction comparisons.
 
 The runtime uses only the Python standard library.

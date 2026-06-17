@@ -59,6 +59,7 @@ _HIGHLIGHT_START = "__CAIRN_HIGHLIGHT_START__"
 _HIGHLIGHT_END = "__CAIRN_HIGHLIGHT_END__"
 _BM25_WEIGHTS = (0.1, 1.5, 8.0, 4.0, 6.0, 6.0, 5.0, 5.0, 0.2, 3.0)
 _PASSAGE_BM25_WEIGHTS = (0.1, 1.5, 8.0, 6.0, 5.0, 4.0, 0.1, 0.1, 1.0, 3.0)
+_RRF_K = 60
 
 
 def _db_path(root: Path) -> Path:
@@ -113,13 +114,22 @@ def _matches_filters(
     return True
 
 
-def _fts_query(query: str) -> str:
+def _query_tokens(query: str) -> list[str]:
     cleaned = _FTS_FIELD_PREFIX.sub(" ", query)
-    tokens = [
+    return [
         token for token in _FTS_TOKEN.findall(cleaned)
         if token.upper() not in _FTS_OPERATORS
     ]
+
+
+def _fts_query(query: str) -> str:
+    tokens = _query_tokens(query)
     return " ".join(f'"{token}"' for token in tokens)
+
+
+def _fts_or_query(query: str) -> str:
+    tokens = _query_tokens(query)
+    return " OR ".join(f'"{token}"' for token in tokens)
 
 
 def _best_snippet(content_snippet: str, body_snippet: str) -> str:
@@ -290,6 +300,58 @@ def rebuild_index(root: Path) -> None:
     sync_index(root, rebuild=True)
 
 
+def _search_doc_rows(con: sqlite3.Connection, fts_query: str, candidate_limit: int) -> list[sqlite3.Row]:
+    return con.execute(
+        "SELECT path, type, title, tags, systems, "
+        "bm25(docs, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) AS score, "
+        "snippet(docs, 9, ?, ?, '...', 12), "
+        "snippet(docs, 8, ?, ?, '...', 12) "
+        "FROM docs WHERE docs MATCH ? ORDER BY score LIMIT ?",
+        (
+            *_BM25_WEIGHTS,
+            _HIGHLIGHT_START,
+            _HIGHLIGHT_END,
+            _HIGHLIGHT_START,
+            _HIGHLIGHT_END,
+            fts_query,
+            candidate_limit,
+        ),
+    ).fetchall()
+
+
+def _rrf_doc_rows(con: sqlite3.Connection, query: str, candidate_limit: int) -> list[sqlite3.Row]:
+    variants = []
+    for variant in (_fts_query(query), _fts_or_query(query)):
+        if variant and variant not in variants:
+            variants.append(variant)
+    fused: dict[str, dict[str, object]] = {}
+    for variant in variants:
+        for rank, row in enumerate(_search_doc_rows(con, variant, candidate_limit), start=1):
+            path = str(row[0])
+            score = float(row[5])
+            item = fused.setdefault(
+                path,
+                {"row": row, "rrf": 0.0, "best_rank": rank, "best_score": score},
+            )
+            item["rrf"] = float(item["rrf"]) + (1 / (_RRF_K + rank))
+            if rank < int(item["best_rank"]) or score < float(item["best_score"]):
+                item["row"] = row
+                item["best_rank"] = rank
+                item["best_score"] = score
+    return [
+        item["row"]
+        for item in sorted(
+            fused.values(),
+            key=lambda item: (
+                -float(item["rrf"]),
+                int(item["best_rank"]),
+                float(item["best_score"]),
+                str(item["row"][0]),
+            ),
+        )
+    ]
+
+
 def search(
     root: Path,
     query: str,
@@ -297,10 +359,13 @@ def search(
     type_filter: str | None = None,
     tag_filters: Sequence[str] = (),
     system_filters: Sequence[str] = (),
+    ranker: str = "bm25",
 ) -> list[SearchResult]:
     root = Path(root)
     if limit <= 0:
         raise ValueError("limit must be positive")
+    if ranker not in {"bm25", "rrf"}:
+        raise ValueError("ranker must be 'bm25' or 'rrf'")
     fts_query = _fts_query(query)
     if not fts_query:
         return []
@@ -313,23 +378,16 @@ def search(
         raise CairnIndexError(_INDEX_ERROR) from exc
     try:
         try:
-            candidate_limit = max(limit * 20, 100) if type_filter or tag_filters or system_filters else limit
-            rows = con.execute(
-                "SELECT path, type, title, tags, systems, "
-                "bm25(docs, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) AS score, "
-                "snippet(docs, 9, ?, ?, '...', 12), "
-                "snippet(docs, 8, ?, ?, '...', 12) "
-                "FROM docs WHERE docs MATCH ? ORDER BY score LIMIT ?",
-                (
-                    *_BM25_WEIGHTS,
-                    _HIGHLIGHT_START,
-                    _HIGHLIGHT_END,
-                    _HIGHLIGHT_START,
-                    _HIGHLIGHT_END,
-                    fts_query,
-                    candidate_limit,
-                ),
-            ).fetchall()
+            candidate_limit = (
+                max(limit * 20, 100)
+                if ranker == "rrf" or type_filter or tag_filters or system_filters
+                else limit
+            )
+            rows = (
+                _rrf_doc_rows(con, query, candidate_limit)
+                if ranker == "rrf"
+                else _search_doc_rows(con, fts_query, candidate_limit)
+            )
         except sqlite3.Error as exc:
             raise CairnIndexError(_INDEX_ERROR) from exc
     finally:
