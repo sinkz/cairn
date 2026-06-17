@@ -1,0 +1,743 @@
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+from cairn.indexer import CairnIndexError, rebuild_index, search, show
+from cairn.vault import init_vault
+
+
+def write_concept(
+    root: Path,
+    name: str,
+    frontmatter: tuple[str, ...],
+    body: str = "# Context\n\nBody.\n",
+) -> Path:
+    concept = root / "knowledge" / name
+    concept.write_text(
+        "---\n" + "\n".join(frontmatter) + "\n---\n\n" + body,
+        encoding="utf-8",
+    )
+    return concept
+
+
+def run_cairn(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    env = dict(os.environ)
+    env["PYTHONPATH"] = str(ROOT / "src")
+    return subprocess.run(
+        [sys.executable, "-m", "cairn", *args],
+        cwd=cwd,
+        env=env,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+
+
+class IndexerTests(unittest.TestCase):
+    def test_search_returns_matching_snippet(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            concept = root / "knowledge" / "deploy-403.md"
+            concept.write_text(
+                "---\n"
+                "type: Runbook\n"
+                "title: Fix deploy 403\n"
+                "description: Fix deploy when permission returns 403.\n"
+                "tags: [deploy, bug]\n"
+                "timestamp: 2026-06-17T10:00:00Z\n"
+                "signals: [HTTP 403, permission denied]\n"
+                "---\n\n"
+                "# Context\n\n"
+                "Deploy fails with HTTP 403 during release.\n",
+                encoding="utf-8",
+            )
+            rebuild_index(root)
+
+            results = search(root, "HTTP 403 deploy", limit=3)
+
+            self.assertEqual(len(results), 1)
+            self.assertEqual(results[0].path, "knowledge/deploy-403.md")
+            self.assertIn("403", results[0].snippet)
+
+    def test_punctuation_heavy_query_does_not_crash_and_finds_doc(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "deploy-403.md",
+                (
+                    "type: Runbook",
+                    "title: Fix deploy-403 for C++ api/foo",
+                    "description: title:deploy should still be searchable.",
+                    "tags: [deploy, bug]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\nC++ api/foo deployment fails with 403.\n",
+            )
+            rebuild_index(root)
+
+            results = search(root, "deploy-403 C++ api/foo title:deploy", limit=3)
+
+            self.assertEqual(len(results), 1)
+            self.assertEqual(results[0].path, "knowledge/deploy-403.md")
+
+    def test_operator_words_do_not_become_required_terms(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "deploy-403.md",
+                (
+                    "type: Runbook",
+                    "title: Fix deploy 403",
+                    "description: Permission failure.",
+                    "tags: [deploy, bug]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\nDeploy fails with HTTP 403 during release.\n",
+            )
+            rebuild_index(root)
+
+            results = search(root, "deploy AND 403", limit=3)
+
+            self.assertEqual(len(results), 1)
+            self.assertEqual(results[0].path, "knowledge/deploy-403.md")
+
+    def test_title_match_ranks_above_repeated_body_match(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "body-noise.md",
+                (
+                    "type: Runbook",
+                    "title: Body noise",
+                    "description: Repeated body-only match.",
+                    "tags: [bug]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\n" + ("rankneedle " * 40),
+            )
+            write_concept(
+                root,
+                "title-signal.md",
+                (
+                    "type: Runbook",
+                    "title: rankneedle exact title",
+                    "description: Title carries the primary signal.",
+                    "tags: [bug]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\nNo repeated body match.\n",
+            )
+            rebuild_index(root)
+
+            results = search(root, "rankneedle", limit=2)
+
+            self.assertEqual(results[0].path, "knowledge/title-signal.md")
+
+    def test_metadata_only_match_returns_metadata_snippet(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "metadata.md",
+                (
+                    "type: Runbook",
+                    "title: Metadata only",
+                    "description: Mentions ultraunique-signal only in metadata.",
+                    "tags: [deploy]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                    "signals: [ultraunique-signal]",
+                ),
+                "# Context\n\nNo matching body words here.\n",
+            )
+            rebuild_index(root)
+
+            results = search(root, "ultraunique-signal", limit=3)
+
+            self.assertEqual(len(results), 1)
+            self.assertIn("ultraunique", results[0].snippet)
+
+    def test_config_excluded_folders_are_not_indexed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            (root / "inbox" / "draft.md").write_text(
+                "---\n"
+                "type: Note\n"
+                "title: Draft excluded\n"
+                "description: secretneedle should not be indexed.\n"
+                "tags: [personal]\n"
+                "timestamp: 2026-06-17T10:00:00Z\n"
+                "---\n\n"
+                "# Context\n\nsecretneedle appears in excluded inbox.\n",
+                encoding="utf-8",
+            )
+            rebuild_index(root)
+
+            results = search(root, "secretneedle", limit=3)
+
+            self.assertEqual(results, [])
+
+    def test_literal_brackets_in_metadata_do_not_hide_body_match(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "brackets.md",
+                (
+                    "type: Runbook",
+                    "title: [Decorated] title",
+                    "description: Bracketed metadata.",
+                    "tags: [deploy]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\nThe body has a needleword match.\n",
+            )
+            rebuild_index(root)
+
+            results = search(root, "needleword", limit=3)
+
+            self.assertEqual(len(results), 1)
+            self.assertIn("[needleword]", results[0].snippet)
+
+    def test_missing_index_error_is_actionable(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+
+            with self.assertRaisesRegex(Exception, "cairn index|rebuild"):
+                search(root, "anything", limit=3)
+
+    def test_index_path_directory_raises_index_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            (root / ".cairn" / "index.db").mkdir()
+
+            with self.assertRaises(CairnIndexError):
+                search(root, "anything", limit=3)
+
+    def test_rebuild_index_path_directory_raises_index_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            (root / ".cairn" / "index.db").mkdir()
+
+            with self.assertRaises(CairnIndexError):
+                rebuild_index(root)
+
+    def test_rebuild_corrupt_index_file_raises_index_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            (root / ".cairn" / "index.db").write_bytes(b"not a sqlite database")
+
+            with self.assertRaises(CairnIndexError):
+                rebuild_index(root)
+
+    def test_cli_search_index_path_directory_returns_concise_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            (root / ".cairn" / "index.db").mkdir()
+
+            result = run_cairn(root, "search", "anything")
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertEqual(result.stdout, "")
+            self.assertIn("cairn index --rebuild", result.stderr)
+            self.assertNotIn("Traceback", result.stderr)
+
+    def test_cli_index_path_directory_returns_concise_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            (root / ".cairn" / "index.db").mkdir()
+
+            result = run_cairn(root, "index", "--rebuild")
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertEqual(result.stdout, "")
+            self.assertIn("cairn index --rebuild", result.stderr)
+            self.assertNotIn("Traceback", result.stderr)
+
+    def test_cli_index_corrupt_index_file_returns_concise_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            (root / ".cairn" / "index.db").write_bytes(b"not a sqlite database")
+
+            result = run_cairn(root, "index", "--rebuild")
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertEqual(result.stdout, "")
+            self.assertIn("cairn index --rebuild", result.stderr)
+            self.assertNotIn("Traceback", result.stderr)
+
+    def test_cli_index_path_rebuilds_vault_from_outside_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            root = base / "vault"
+            outside = base / "outside"
+            outside.mkdir()
+            init_vault(root, profile_name="personal")
+
+            result = run_cairn(outside, "index", "--path", str(root), "--rebuild")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue((root / ".cairn" / "index.db").is_file())
+            self.assertIn(str(root / ".cairn" / "index.db"), result.stdout)
+
+    def test_cli_index_without_rebuild_updates_changed_document(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            concept = write_concept(
+                root,
+                "note.md",
+                (
+                    "type: Note",
+                    "title: Old needle",
+                    "description: oldneedle description.",
+                    "tags: [personal]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\noldneedle body.\n",
+            )
+            run_cairn(root, "index", "--rebuild")
+            concept.write_text(
+                "---\n"
+                "type: Note\n"
+                "title: New needle\n"
+                "description: newneedle description.\n"
+                "tags: [personal]\n"
+                "timestamp: 2026-06-17T10:00:00Z\n"
+                "---\n\n"
+                "# Context\n\nnewneedle body.\n",
+                encoding="utf-8",
+            )
+
+            result = run_cairn(root, "index")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("updated 1", result.stdout)
+            self.assertEqual(search(root, "oldneedle", limit=3), [])
+            self.assertEqual(search(root, "newneedle", limit=3)[0].path, "knowledge/note.md")
+
+    def test_cli_index_without_rebuild_removes_deleted_document(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            concept = write_concept(
+                root,
+                "gone.md",
+                (
+                    "type: Note",
+                    "title: Gone needle",
+                    "description: goneneedle description.",
+                    "tags: [personal]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\ngoneneedle body.\n",
+            )
+            run_cairn(root, "index", "--rebuild")
+            concept.unlink()
+
+            result = run_cairn(root, "index")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("removed 1", result.stdout)
+            self.assertEqual(search(root, "goneneedle", limit=3), [])
+
+    def test_cli_search_missing_index_returns_concise_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+
+            result = run_cairn(root, "search", "anything")
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertEqual(result.stdout, "")
+            self.assertIn("cairn index --rebuild", result.stderr)
+            self.assertNotIn("Traceback", result.stderr)
+
+    def test_cli_search_json_returns_metadata_without_full_body(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "json.md",
+                (
+                    "type: Runbook",
+                    "title: JSON searchable",
+                    "description: Metadata jsonneedle.",
+                    "tags: [deploy]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\nFULL_BODY_SHOULD_NOT_APPEAR in the complete document.\n",
+            )
+            rebuild_index(root)
+
+            result = run_cairn(root, "search", "jsonneedle", "--json")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload[0]["path"], "knowledge/json.md")
+            self.assertIn("snippet", payload[0])
+            self.assertNotIn("body", payload[0])
+            self.assertNotIn("FULL_BODY_SHOULD_NOT_APPEAR", result.stdout)
+
+    def test_cli_search_path_searches_vault_from_outside_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            root = base / "vault"
+            outside = base / "outside"
+            outside.mkdir()
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "deploy-403.md",
+                (
+                    "type: Runbook",
+                    "title: Fix deploy 403",
+                    "description: Permission failure.",
+                    "tags: [deploy, bug]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\nDeploy fails with HTTP 403 during release.\n",
+            )
+            rebuild_index(root)
+
+            result = run_cairn(outside, "search", "deploy 403", "--path", str(root))
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("knowledge/deploy-403.md", result.stdout)
+
+    def test_cli_search_type_filter_excludes_other_matching_types(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            root = base / "vault"
+            outside = base / "outside"
+            outside.mkdir()
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "runbook.md",
+                (
+                    "type: Runbook",
+                    "title: Shared needle runbook",
+                    "description: Mentions sharedneedle.",
+                    "tags: [bug]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\nsharedneedle appears here.\n",
+            )
+            write_concept(
+                root,
+                "decision.md",
+                (
+                    "type: Decision",
+                    "title: Shared needle decision",
+                    "description: Mentions sharedneedle.",
+                    "tags: [architecture]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\nsharedneedle appears here too.\n",
+            )
+            rebuild_index(root)
+
+            result = run_cairn(
+                outside,
+                "search",
+                "sharedneedle",
+                "--path",
+                str(root),
+                "--type",
+                "Decision",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("knowledge/decision.md", result.stdout)
+            self.assertNotIn("knowledge/runbook.md", result.stdout)
+
+    def test_cli_search_tag_filter_excludes_other_matching_tags(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            root = base / "vault"
+            outside = base / "outside"
+            outside.mkdir()
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "deploy.md",
+                (
+                    "type: Runbook",
+                    "title: Shared tag deploy",
+                    "description: Mentions tagneedle.",
+                    "tags: [deploy]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\ntagneedle appears here.\n",
+            )
+            write_concept(
+                root,
+                "architecture.md",
+                (
+                    "type: Decision",
+                    "title: Shared tag architecture",
+                    "description: Mentions tagneedle.",
+                    "tags: [architecture]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\ntagneedle appears here too.\n",
+            )
+            rebuild_index(root)
+
+            result = run_cairn(
+                outside,
+                "search",
+                "tagneedle",
+                "--path",
+                str(root),
+                "--tag",
+                "architecture",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("knowledge/architecture.md", result.stdout)
+            self.assertNotIn("knowledge/deploy.md", result.stdout)
+
+    def test_cli_search_system_filter_excludes_other_matching_systems(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            root = base / "vault"
+            outside = base / "outside"
+            outside.mkdir()
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "ci.md",
+                (
+                    "type: Runbook",
+                    "title: Shared system ci",
+                    "description: Mentions systemneedle.",
+                    "tags: [deploy]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                    "systems: [ci]",
+                ),
+                "# Context\n\nsystemneedle appears here.\n",
+            )
+            write_concept(
+                root,
+                "payments.md",
+                (
+                    "type: Runbook",
+                    "title: Shared system payments",
+                    "description: Mentions systemneedle.",
+                    "tags: [bug]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                    "systems: [payments]",
+                ),
+                "# Context\n\nsystemneedle appears here too.\n",
+            )
+            rebuild_index(root)
+
+            result = run_cairn(
+                outside,
+                "search",
+                "systemneedle",
+                "--path",
+                str(root),
+                "--system",
+                "payments",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("knowledge/payments.md", result.stdout)
+            self.assertNotIn("knowledge/ci.md", result.stdout)
+
+    def test_cli_search_rejects_negative_limit(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+
+            result = run_cairn(root, "search", "anything", "--limit", "-1")
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("--limit must be positive", result.stderr)
+
+    def test_show_returns_full_document(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            write_concept(
+                root,
+                "note.md",
+                (
+                    "type: Note",
+                    "title: Note",
+                    "description: A note.",
+                    "tags: [personal]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\nFull body.\n",
+            )
+
+            text = show(root, "knowledge/note.md")
+
+            self.assertIn("type: Note", text)
+            self.assertIn("Full body.", text)
+
+    def test_show_rejects_path_traversal(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+
+            with self.assertRaises(ValueError):
+                show(root, "../outside.md")
+
+    def test_cli_show_missing_file_returns_concise_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+
+            result = run_cairn(root, "show", "missing.md")
+
+            self.assertEqual(result.returncode, 1)
+            self.assertEqual(result.stdout, "")
+            self.assertIn("ERROR", result.stderr)
+            self.assertNotIn("Traceback", result.stderr)
+
+    def test_cli_show_path_traversal_returns_concise_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+
+            result = run_cairn(root, "show", "../outside.md")
+
+            self.assertEqual(result.returncode, 1)
+            self.assertEqual(result.stdout, "")
+            self.assertIn("ERROR", result.stderr)
+            self.assertNotIn("Traceback", result.stderr)
+
+    def test_cli_show_path_reads_vault_document_from_outside_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            root = base / "vault"
+            outside = base / "outside"
+            outside.mkdir()
+            init_vault(root, profile_name="personal")
+            write_concept(
+                root,
+                "note.md",
+                (
+                    "type: Note",
+                    "title: Note",
+                    "description: A note.",
+                    "tags: [personal]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\nFull body.\n",
+            )
+
+            result = run_cairn(outside, "show", "knowledge/note.md", "--path", str(root))
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("Full body.", result.stdout)
+
+    def test_cli_show_lines_returns_only_requested_line_range(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            write_concept(
+                root,
+                "note.md",
+                (
+                    "type: Note",
+                    "title: Note",
+                    "description: A note.",
+                    "tags: [personal]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "line one\nline two\nline three\n",
+            )
+
+            result = run_cairn(root, "show", "knowledge/note.md", "--lines", "9:10")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout, "line one\nline two\n")
+
+    def test_cli_show_section_returns_only_named_markdown_section(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            write_concept(
+                root,
+                "note.md",
+                (
+                    "type: Note",
+                    "title: Note",
+                    "description: A note.",
+                    "tags: [personal]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\nIgnore this.\n\n# Diagnosis\n\nKeep this.\n\n# Resolution\n\nIgnore that.\n",
+            )
+
+            result = run_cairn(root, "show", "knowledge/note.md", "--section", "Diagnosis")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("# Diagnosis", result.stdout)
+            self.assertIn("Keep this.", result.stdout)
+            self.assertNotIn("Ignore this.", result.stdout)
+            self.assertNotIn("Ignore that.", result.stdout)
+
+    def test_cli_show_snippet_returns_nearby_matching_lines(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            write_concept(
+                root,
+                "note.md",
+                (
+                    "type: Note",
+                    "title: Note",
+                    "description: A note.",
+                    "tags: [personal]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "alpha\nbefore\nneedle target\nafter\nomega\n",
+            )
+
+            result = run_cairn(root, "show", "knowledge/note.md", "--snippet", "needle", "--context", "1")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("before", result.stdout)
+            self.assertIn("needle target", result.stdout)
+            self.assertIn("after", result.stdout)
+            self.assertNotIn("alpha", result.stdout)
+            self.assertNotIn("omega", result.stdout)
+
+
+if __name__ == "__main__":
+    unittest.main()

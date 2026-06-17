@@ -1,0 +1,14 @@
+.sandbox/
+.cairn/
+__pycache__/
+*.py[cod]
+*.sqlite
+*.db
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
