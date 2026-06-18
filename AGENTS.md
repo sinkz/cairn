@@ -23,10 +23,13 @@ Follow `ROADMAP.md`. The current focus is:
 - stable JSON output for agent workflows;
 - structured retrieval packets with source provenance and budget metadata;
 - safer writeback through dry-run, no-op reasons, and conflict detection;
+- deterministic glossary aliases through top-level `glossary.md` and
+  `cairn vocab`;
 - richer ranking/writeback explanations and benchmark slices.
 
-Do not treat ranking scores as confidence. Do not add persistent query cache
-before benchmarks show SQLite FTS latency is a real bottleneck.
+Do not treat ranking scores as confidence. Keep glossary behavior explicit and
+reviewable; do not hard-code domain synonyms in Python. Do not add persistent
+query cache before benchmarks show SQLite FTS latency is a real bottleneck.
 
 ## Development Setup
 
@@ -106,6 +109,10 @@ When benchmark numbers change intentionally, update:
   for a good reason;
 - `docs/data/benchmarks.json` when public metrics change;
 - README badges/tables if public counts or metrics are shown there.
+
+Keep RRF/noisy-query topics separate from glossary topics. If a new glossary
+alias makes a BM25 comparison pass, change the noisy term rather than weakening
+the benchmark assertion.
 
 ## Release Process
 

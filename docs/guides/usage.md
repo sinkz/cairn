@@ -83,6 +83,9 @@ The command creates:
 | `_templates/concept.md` | Starting template for new notes |
 | domain folders | `knowledge`, `processes`, `decisions`, `references`, `notes`, `inbox` |
 
+The vault may also contain a top-level `glossary.md`. Cairn treats it as a
+reserved control file, not as a regular note.
+
 ## Configuration
 
 Cairn stores local settings in `.cairn/config.json`.
@@ -154,6 +157,40 @@ Useful optional fields:
 - `signals`: symptoms, errors, logs, status codes, or trigger phrases.
 
 Never store secrets, tokens, passwords, private keys, or credentials.
+
+## Glossary And Deterministic Aliases
+
+Use `glossary.md` for stable vocabulary differences that strict lexical search
+cannot infer, such as `k8s` and `kubernetes`. The glossary is explicit data in
+the vault, so it can be reviewed and versioned like any other important file.
+
+```markdown
+# Glossary
+
+## Kubernetes
+
+aliases: k8s, kube
+status: approved
+scope: engineering
+```
+
+Cairn keeps the default search conservative. `search` and `retrieve` first run
+the exact BM25 query. Only when that returns no rows, Cairn expands approved
+glossary terms and aliases and retries with a cheap OR query. This keeps common
+queries stable while still covering curated synonym gaps.
+
+Manage the glossary with:
+
+```bash
+cairn vocab add-term Kubernetes --alias k8s --alias kube --path ~/brain
+cairn vocab add-alias Kubernetes k8s-prod --path ~/brain
+cairn vocab suggest "kubernetes rollback" --path ~/brain --json
+cairn vocab validate --path ~/brain --json
+```
+
+`vocab suggest` never writes to the vault. It reports deterministic candidates
+from local notes so a human or agent can decide whether an alias should become
+approved vocabulary.
 
 ## Command Reference
 
@@ -301,6 +338,8 @@ Use search before opening full documents. This is the main token-saving command.
 The default `bm25` ranker is strict and stable. Use experimental `--ranker rrf`
 when the query may contain extra terms or lexical variants and you want Cairn to
 fuse multiple cheap lexical runs.
+If a top-level `glossary.md` exists, strict BM25 automatically gets one fallback
+attempt with approved aliases only when the exact query returns no rows.
 
 Filters:
 
@@ -398,6 +437,21 @@ Results include a `kind` field. `duplicate_candidate` means the match is strong
 enough to prefer updating the existing note. `related` means the note is useful
 context, but the agent should inspect it before deciding whether to update or
 create a new note.
+
+### `cairn vocab`
+
+Manages the top-level deterministic glossary.
+
+```bash
+cairn vocab add-term Kubernetes --alias k8s --alias kube --path ~/brain
+cairn vocab add-alias Kubernetes kube --path ~/brain
+cairn vocab suggest "kubernetes rollback" --path ~/brain --limit 5
+cairn vocab validate --path ~/brain
+```
+
+Use this when multiple people or agents describe the same concept with different
+terms. Search and retrieval use only `status: approved` terms. Suggestions are
+read-only and should be reviewed before adding a new alias.
 
 ### `cairn stats`
 

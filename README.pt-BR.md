@@ -12,9 +12,9 @@
   <p>
     <img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white">
     <img alt="Dependências de runtime: zero" src="https://img.shields.io/badge/dependencias_runtime-0-2f6f4e">
-    <img alt="Testes de regressão: 137" src="https://img.shields.io/badge/testes-137-3b6ea8">
+    <img alt="Testes de regressão: 145" src="https://img.shields.io/badge/testes-145-3b6ea8">
     <img alt="Recall at 3: 1.00" src="https://img.shields.io/badge/Recall%403-1.00-2f6f4e">
-    <img alt="Redução de contexto: 92.16%" src="https://img.shields.io/badge/reducao_contexto-92.16%25-8a5a44">
+    <img alt="Redução de contexto: 92.15%" src="https://img.shields.io/badge/reducao_contexto-92.15%25-8a5a44">
     <img alt="Acurácia de decisão de escrita: 100%" src="https://img.shields.io/badge/escrita_decisoes-100%25-285da8">
     <img alt="Licença: MIT" src="https://img.shields.io/badge/licenca-MIT-15130f">
   </p>
@@ -48,12 +48,12 @@ atualizar vs criar.
 | --- | ---: | --- |
 | Recall@3 | `1.00` | Notas esperadas aparecem nos três primeiros resultados. |
 | MRR@3 | `1.00` | Resultados relevantes aparecem primeiro no conjunto atual. |
-| nDCG@3 | `0.9931` | Qualidade de ranking contra rótulos determinísticos de relevância. |
-| Redução de contexto | `92.16%` | Recuperação por passagens retorna muito menos texto que abrir documentos completos. |
+| nDCG@3 | `0.9934` | Qualidade de ranking contra rótulos determinísticos de relevância. |
+| Redução de contexto | `92.15%` | Recuperação por passagens retorna muito menos texto que abrir documentos completos. |
 | Redução em comparativos | `53.73%` | Redução medida nas rodadas comparativas configuradas. |
 | Acurácia de decisão de escrita | `100%` | Decisões corretas de criar, atualizar, no-op e conflito no conjunto de fixtures. |
 | Prevenção de duplicatas | `100%` | Notas reutilizáveis existentes são atualizadas ou preservadas em vez de duplicadas. |
-| Testes de regressão | `137` | Testes unitários e de workflow rodados antes da publicação atual. |
+| Testes de regressão | `145` | Testes unitários e de workflow rodados antes da publicação atual. |
 
 Os dados do benchmark também são publicados no site por
 [`docs/data/benchmarks.json`](docs/data/benchmarks.json).
@@ -171,6 +171,16 @@ cairn search "deploy 403 token" --path CAMINHO_DO_VAULT --limit 3
 cairn search "deploy token rotation kubernetes secret" --path CAMINHO_DO_VAULT --ranker rrf
 ```
 
+Se seu time usa sinônimos estáveis como `k8s` e `kubernetes`, mantenha isso em
+`glossary.md` para a busca estrita expandir misses exatos de forma
+determinística:
+
+```bash
+cairn vocab add-term Kubernetes --alias k8s --alias kube --path CAMINHO_DO_VAULT
+cairn vocab validate --path CAMINHO_DO_VAULT
+cairn vocab suggest "kubernetes rollback" --path CAMINHO_DO_VAULT --json
+```
+
 ### 3. Recuperar contexto compacto
 
 ```bash
@@ -210,6 +220,7 @@ a última inspeção.
 | `cairn retrieve` | Retorna contexto dentro de um orçamento de tokens |
 | `cairn show` | Abre documento completo, seção, snippet ou intervalo de linhas |
 | `cairn update` | Adiciona informação reutilizável a uma nota existente |
+| `cairn vocab` | Gerencia termos e aliases determinísticos do glossário |
 | `cairn setup-agent` | Cria instruções específicas como `CODEX.md` |
 | `cairn refresh-guides` | Atualiza guias de agente gerados |
 | `cairn stats` | Mostra contagens e tamanho aproximado em tokens |

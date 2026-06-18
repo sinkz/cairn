@@ -19,6 +19,8 @@ implementation history.
 - Public benchmark JSON and GitHub Pages cards for retrieval and writeback
   metrics, including current values and history.
 - BM25 default ranking plus opt-in RRF and `retrieve --ranker auto` fallback.
+- Top-level deterministic glossary with `cairn vocab`, approved aliases, and
+  benchmark coverage for synonym gaps such as `k8s`/`kubernetes`.
 - Secret-safety checks for validation, retrieval, and export.
 - Similar-note detection with fingerprint fallback and `duplicate_candidate` /
   `related` labels.
@@ -39,15 +41,13 @@ implementation history.
   from the same model.
 - Harden writeback with dry-run output, no-op reasons, and conflict detection
   based on file signatures before agents update shared notes.
-- Normalize human-facing selectors such as `show --section` and snippets so
-  Portuguese headings with accents remain discoverable from ASCII queries.
-- Harden standalone release portability, especially Linux binary compatibility
-  across older glibc distributions, or document the minimum supported baseline.
+- Add schema policy and pre-write validation so generated notes fail before
+  malformed frontmatter reaches the vault.
+- Complete ranking explanation output for search and retrieve, focused on
+  debugging and benchmarks rather than confidence claims.
 
 ## Next
 
-- Add ranking explanation output for search and retrieve, focused on debugging
-  and benchmarks rather than confidence claims.
 - Add read-only suggestion workflows after similar-note thresholds are measured,
   so agents can propose update-existing vs create-new actions with evidence.
 - Surface note freshness and provenance metadata in results without mutating

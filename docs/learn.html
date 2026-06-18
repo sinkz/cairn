@@ -202,6 +202,11 @@
                 <p data-lang-content="pt">Padrão lexical estrito. Previsível, local e leve.</p>
               </div>
               <div class="stack-row">
+                <strong>Glossary</strong>
+                <p data-lang-content="en">Curated aliases such as k8s/kubernetes are used only as a fallback after exact BM25 misses.</p>
+                <p data-lang-content="pt">Aliases curados como k8s/kubernetes são usados só como fallback depois de misses exatos no BM25.</p>
+              </div>
+              <div class="stack-row">
                 <strong>RRF</strong>
                 <p data-lang-content="en">Fuses multiple lexical runs when a query has extra words or safe variants.</p>
                 <p data-lang-content="pt">Combina rodadas lexicais quando a query tem termos extras ou variantes seguras.</p>
@@ -380,14 +385,18 @@
           <h2 data-lang-content="en">Search and retrieval use a staged local pipeline.</h2>
           <h2 data-lang-content="pt">Busca e recuperação usam um pipeline local em etapas.</h2>
           <p data-lang-content="en">
-            The default search path is strict BM25 over the local SQLite index. RRF can
-            be requested directly, and `retrieve --ranker auto` tries BM25 first before
-            falling back to RRF when no context is returned.
+            The default search path is strict BM25 over the local SQLite index. If a
+            top-level `glossary.md` exists, approved aliases are tried only after the
+            exact query returns no rows. RRF can be requested directly, and
+            `retrieve --ranker auto` tries BM25 first before falling back to RRF when
+            no context is returned.
           </p>
           <p data-lang-content="pt">
-            O caminho padrão é BM25 estrito sobre o índice SQLite local. RRF pode ser
-            pedido diretamente, e `retrieve --ranker auto` tenta BM25 primeiro antes de
-            cair para RRF quando nenhum contexto é retornado.
+            O caminho padrão é BM25 estrito sobre o índice SQLite local. Se existir um
+            `glossary.md` no topo do vault, aliases aprovados são testados só depois
+            que a consulta exata não retorna linhas. RRF pode ser pedido diretamente,
+            e `retrieve --ranker auto` tenta BM25 primeiro antes de cair para RRF
+            quando nenhum contexto é retornado.
           </p>
         </div>
 

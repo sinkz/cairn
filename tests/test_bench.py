@@ -99,6 +99,21 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(public_metrics["duplicate_avoidance_rate"], payload["duplicate_avoidance_rate"])
         self.assertEqual(public_metrics["writeback_cases"], payload["cases"])
 
+    def test_public_retrieval_metrics_match_current_benchmark_output(self) -> None:
+        result = run_bench()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        data = json.loads((ROOT / "docs" / "data" / "benchmarks.json").read_text(encoding="utf-8"))
+        retrieval = next(suite for suite in data["suites"] if suite["id"] == "retrieval")
+        public_metrics = {metric["id"]: metric["value"] for metric in retrieval["current"]["metrics"]}
+
+        self.assertEqual(public_metrics["recall_at_3"], payload["mean_recall_at_k"])
+        self.assertEqual(public_metrics["mrr_at_3"], payload["mean_mrr_at_k"])
+        self.assertEqual(public_metrics["ndcg_at_3"], payload["mean_ndcg_at_k"])
+        self.assertEqual(public_metrics["context_reduction"], payload["context_reduction"])
+        self.assertEqual(public_metrics["comparison_reduction"], payload["comparison"]["token_reduction"])
+
     def test_benchmark_outputs_quality_and_token_metrics_for_harder_suite(self) -> None:
         result = run_bench()
 
@@ -156,9 +171,21 @@ class BenchTests(unittest.TestCase):
                 "role_workflow",
                 "access",
                 "library",
+                "vocabulary",
             }.issubset(categories),
             categories,
         )
+
+    def test_benchmark_has_vocabulary_slice_for_glossary_aliases(self) -> None:
+        result = run_bench()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        topic = next(item for item in payload["per_topic"] if item["id"] == "q25")
+        self.assertEqual(topic["category"], "vocabulary")
+        self.assertEqual(topic["ranker"], "bm25")
+        self.assertEqual(topic["docs"][0], "knowledge/k8s-rollback.md")
+        self.assertEqual(topic["recall_at_k"], 1.0)
 
     def test_benchmark_applies_topic_filters(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

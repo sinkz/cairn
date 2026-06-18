@@ -11,6 +11,7 @@ from cairn.frontmatter import FrontmatterError, parse_document
 from cairn.passages import split_passages
 from cairn.ranking import fts_query, fts_query_variants, rrf_merge
 from cairn.validate import RESERVED_NAMES
+from cairn.vocabulary import expanded_fts_or_query
 
 
 class CairnIndexError(RuntimeError):
@@ -295,6 +296,22 @@ def _search_doc_rows(con: sqlite3.Connection, fts_query: str, candidate_limit: i
     ).fetchall()
 
 
+def _search_doc_rows_with_fallback(
+    con: sqlite3.Connection,
+    root: Path,
+    query: str,
+    query_text: str,
+    candidate_limit: int,
+) -> list[sqlite3.Row]:
+    rows = _search_doc_rows(con, query_text, candidate_limit)
+    if rows:
+        return rows
+    expanded = expanded_fts_or_query(root, query)
+    if not expanded or expanded == query_text:
+        return rows
+    return _search_doc_rows(con, expanded, max(candidate_limit, 100))
+
+
 def _search_passage_rows(con: sqlite3.Connection, fts_query: str, candidate_limit: int) -> list[sqlite3.Row]:
     return con.execute(
         "SELECT path, type, title, tags, systems, heading, start_line, end_line, "
@@ -313,6 +330,22 @@ def _search_passage_rows(con: sqlite3.Connection, fts_query: str, candidate_limi
             candidate_limit,
         ),
     ).fetchall()
+
+
+def _search_passage_rows_with_fallback(
+    con: sqlite3.Connection,
+    root: Path,
+    query: str,
+    query_text: str,
+    candidate_limit: int,
+) -> list[sqlite3.Row]:
+    rows = _search_passage_rows(con, query_text, candidate_limit)
+    if rows:
+        return rows
+    expanded = expanded_fts_or_query(root, query)
+    if not expanded or expanded == query_text:
+        return rows
+    return _search_passage_rows(con, expanded, max(candidate_limit, 100))
 
 
 def _rrf_doc_rows(con: sqlite3.Connection, query: str, candidate_limit: int) -> list[sqlite3.Row]:
@@ -387,7 +420,7 @@ def search(
             rows = (
                 _rrf_doc_rows(con, query, candidate_limit)
                 if ranker == "rrf"
-                else _search_doc_rows(con, query_text, candidate_limit)
+                else _search_doc_rows_with_fallback(con, root, query, query_text, candidate_limit)
             )
         except sqlite3.Error as exc:
             raise CairnIndexError(_INDEX_ERROR) from exc
@@ -448,7 +481,7 @@ def search_passages(
             rows = (
                 _rrf_passage_rows(con, query, candidate_limit)
                 if ranker == "rrf"
-                else _search_passage_rows(con, query_text, candidate_limit)
+                else _search_passage_rows_with_fallback(con, root, query, query_text, candidate_limit)
             )
         except sqlite3.Error as exc:
             raise CairnIndexError(_INDEX_ERROR) from exc

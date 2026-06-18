@@ -12,9 +12,9 @@
   <p>
     <img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white">
     <img alt="Runtime dependencies: zero" src="https://img.shields.io/badge/runtime_dependencies-0-2f6f4e">
-    <img alt="Regression tests: 137" src="https://img.shields.io/badge/tests-137-3b6ea8">
+    <img alt="Regression tests: 145" src="https://img.shields.io/badge/tests-145-3b6ea8">
     <img alt="Recall at 3: 1.00" src="https://img.shields.io/badge/Recall%403-1.00-2f6f4e">
-    <img alt="Context reduction: 92.16%" src="https://img.shields.io/badge/context_reduction-92.16%25-8a5a44">
+    <img alt="Context reduction: 92.15%" src="https://img.shields.io/badge/context_reduction-92.15%25-8a5a44">
     <img alt="Writeback decision accuracy: 100%" src="https://img.shields.io/badge/writeback_decisions-100%25-285da8">
     <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-15130f">
   </p>
@@ -47,12 +47,12 @@ writeback decisions for update-vs-create workflows.
 | --- | ---: | --- |
 | Recall@3 | `1.00` | Expected notes appear in the top three results. |
 | MRR@3 | `1.00` | Relevant results are ranked first in the current fixture set. |
-| nDCG@3 | `0.9931` | Ranking quality against deterministic relevance labels. |
-| Context reduction | `92.16%` | Passage retrieval returns far less text than opening full documents. |
+| nDCG@3 | `0.9934` | Ranking quality against deterministic relevance labels. |
+| Context reduction | `92.15%` | Passage retrieval returns far less text than opening full documents. |
 | Comparison reduction | `53.73%` | Reduction measured in configured comparison runs. |
 | Writeback decision accuracy | `100%` | Correct create, update, no-op, and conflict decisions in the fixture set. |
 | Duplicate avoidance | `100%` | Existing reusable notes are updated or preserved instead of duplicated. |
-| Regression tests | `137` | Unit and workflow tests run before publishing the current page. |
+| Regression tests | `145` | Unit and workflow tests run before publishing the current page. |
 
 Benchmark data is also published on the website through
 [`docs/data/benchmarks.json`](docs/data/benchmarks.json).
@@ -169,6 +169,15 @@ cairn search "deploy 403 token" --path PATH_TO_VAULT --limit 3
 cairn search "deploy token rotation kubernetes secret" --path PATH_TO_VAULT --ranker rrf
 ```
 
+If your team uses stable synonyms such as `k8s` and `kubernetes`, keep them in
+`glossary.md` so strict search can expand exact misses deterministically:
+
+```bash
+cairn vocab add-term Kubernetes --alias k8s --alias kube --path PATH_TO_VAULT
+cairn vocab validate --path PATH_TO_VAULT
+cairn vocab suggest "kubernetes rollback" --path PATH_TO_VAULT --json
+```
+
 ### 3. Retrieve compact context
 
 ```bash
@@ -208,6 +217,7 @@ was inspected.
 | `cairn retrieve` | Return context within a token budget |
 | `cairn show` | Open a full document, section, snippet, or line range |
 | `cairn update` | Append reusable information to an existing note |
+| `cairn vocab` | Manage deterministic glossary terms and aliases |
 | `cairn setup-agent` | Create tool-specific instructions such as `CODEX.md` |
 | `cairn refresh-guides` | Refresh generated agent guides |
 | `cairn stats` | Show vault counts and approximate token size |

@@ -1,4 +1,8 @@
 {
+  "q1": [
+    "knowledge/mobile-deploy-403.md",
+    "knowledge/deploy-403.md"
+  ],
   "q2": [
     "knowledge/jwt-clock-skew.md"
   ],
@@ -21,10 +25,12 @@
     "knowledge/mobile-deploy-403.md"
   ],
   "q9": [
-    "decisions/current-session-store.md"
+    "decisions/current-session-store.md",
+    "decisions/old-session-store.md"
   ],
   "q10": [
-    "knowledge/deploy-403-consolidated.md"
+    "knowledge/deploy-403-consolidated.md",
+    "knowledge/deploy-403-daily-duplicate.md"
   ],
   "q11": [
     "processes/hotfix-rollback.md"
@@ -45,7 +51,9 @@
     "knowledge/db-pool-exhausted.md"
   ],
   "q17": [
-    "knowledge/deploy-403.md"
+    "knowledge/deploy-403.md",
+    "knowledge/mobile-deploy-403.md",
+    "knowledge/token-storage.md"
   ],
   "q18": [
     "knowledge/cache-reconnection.md"
@@ -67,5 +75,10 @@
   ],
   "q24": [
     "decisions/use-ruff-formatting.md"
+  ],
+  "q25": [
+    "knowledge/k8s-rollback.md",
+    "processes/hotfix-rollback.md",
+    "knowledge/deploy-403-consolidated.md"
   ]
 }

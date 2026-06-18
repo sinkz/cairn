@@ -54,7 +54,7 @@
               "en": "nDCG@3",
               "pt": "nDCG@3"
             },
-            "value": 0.9931,
+            "value": 0.9934,
             "format": "decimal",
             "precision": 4,
             "description": {
@@ -68,7 +68,7 @@
               "en": "Context reduction",
               "pt": "Redução de contexto"
             },
-            "value": 0.9216,
+            "value": 0.9215,
             "format": "percent",
             "precision": 2,
             "description": {
@@ -101,6 +101,15 @@
           "mrr_at_3": 1.0,
           "ndcg_at_3": 0.9931,
           "context_reduction": 0.9216,
+          "comparison_reduction": 0.5373
+        },
+        {
+          "date": "2026-06-18",
+          "label": "BM25 + glossary aliases",
+          "recall_at_3": 1.0,
+          "mrr_at_3": 1.0,
+          "ndcg_at_3": 0.9934,
+          "context_reduction": 0.9215,
           "comparison_reduction": 0.5373
         }
       ]
@@ -251,7 +260,7 @@
           "en": "Regression tests",
           "pt": "Testes de regressão"
         },
-        "value": 137,
+        "value": 145,
         "format": "integer",
         "precision": 0,
         "description": {
@@ -275,8 +284,17 @@
       "label": "BM25 + passages + RRF fallback",
       "recall_at_3": 1.0,
       "mrr_at_3": 1.0,
-      "ndcg_at_3": 0.9931,
-      "context_reduction": 0.9216,
+      "ndcg_at_3": 0.9934,
+      "context_reduction": 0.9215,
+      "comparison_reduction": 0.5373
+    },
+    {
+      "date": "2026-06-18",
+      "label": "BM25 + glossary aliases",
+      "recall_at_3": 1.0,
+      "mrr_at_3": 1.0,
+      "ndcg_at_3": 0.9934,
+      "context_reduction": 0.9215,
       "comparison_reduction": 0.5373
     }
   ],

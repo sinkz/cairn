@@ -155,6 +155,25 @@ def build_parser() -> argparse.ArgumentParser:
 
     refresh_guides_cmd = sub.add_parser("refresh-guides", help="Refresh configured agent guides.")
     _add_vault_path(refresh_guides_cmd)
+
+    vocab_cmd = sub.add_parser("vocab", help="Manage the deterministic Cairn glossary.")
+    vocab_sub = vocab_cmd.add_subparsers(dest="vocab_command")
+    vocab_add = vocab_sub.add_parser("add-term", help="Add or update an approved glossary term.")
+    vocab_add.add_argument("term")
+    vocab_add.add_argument("--alias", action="append", default=[])
+    _add_vault_path(vocab_add)
+    vocab_alias = vocab_sub.add_parser("add-alias", help="Add an alias to an approved glossary term.")
+    vocab_alias.add_argument("term")
+    vocab_alias.add_argument("alias")
+    _add_vault_path(vocab_alias)
+    vocab_suggest = vocab_sub.add_parser("suggest", help="Suggest glossary aliases from a query and the local vault.")
+    vocab_suggest.add_argument("query")
+    vocab_suggest.add_argument("--limit", type=int, default=5)
+    vocab_suggest.add_argument("--json", action="store_true")
+    _add_vault_path(vocab_suggest)
+    vocab_validate = vocab_sub.add_parser("validate", help="Validate glossary terms and aliases.")
+    vocab_validate.add_argument("--json", action="store_true")
+    _add_vault_path(vocab_validate)
     return parser
 
 
@@ -295,6 +314,50 @@ def main(argv: list[str] | None = None) -> int:
         for result in refresh_guides(Path(args.path)):
             print(f"updated {result.path}")
         return 0
+    if args.command == "vocab":
+        from cairn.vocabulary import add_alias, add_term, suggest_terms, validate_terms
+
+        if args.vocab_command == "add-term":
+            try:
+                term = add_term(Path(args.path), args.term, args.alias)
+            except ValueError as exc:
+                print(f"ERROR {exc}", file=sys.stderr)
+                return 1
+            print(f"updated glossary.md :: {term.title}")
+            return 0
+        if args.vocab_command == "add-alias":
+            try:
+                term = add_alias(Path(args.path), args.term, args.alias)
+            except ValueError as exc:
+                print(f"ERROR {exc}", file=sys.stderr)
+                return 1
+            print(f"updated glossary.md :: {term.title}")
+            return 0
+        if args.vocab_command == "suggest":
+            if args.limit <= 0:
+                parser.error("--limit must be positive")
+            report = suggest_terms(Path(args.path), args.query, limit=args.limit)
+            if args.json:
+                _print_json(report)
+            else:
+                for item in report.suggestions:
+                    print(f"{item.term} -> {item.alias} ({item.path}, score={item.score:.4f})")
+                    for evidence in item.evidence:
+                        print(f"  - {evidence}")
+            return 0
+        if args.vocab_command == "validate":
+            report = validate_terms(Path(args.path))
+            if args.json:
+                _print_json(report)
+            else:
+                for issue in report.errors:
+                    print(f"ERROR {issue.term}: {issue.message}")
+                for issue in report.warnings:
+                    print(f"WARN {issue.term}: {issue.message}")
+                if report.ok:
+                    print(f"glossary ok ({report.term_count} terms, {report.alias_count} aliases)")
+            return 0 if report.ok else 1
+        parser.error("vocab requires a subcommand")
     if args.command == "index":
         from cairn.indexer import CairnIndexError, sync_index
 

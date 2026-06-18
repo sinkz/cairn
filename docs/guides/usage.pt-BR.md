@@ -84,6 +84,9 @@ O comando cria:
 | `_templates/concept.md` | Template inicial para novas notas |
 | pastas de domínio | `knowledge`, `processes`, `decisions`, `references`, `notes`, `inbox` |
 
+O vault também pode ter um `glossary.md` no topo. Cairn trata esse arquivo como
+um controle reservado, não como uma nota comum.
+
 ## Configuração
 
 Cairn guarda configurações locais em `.cairn/config.json`.
@@ -155,6 +158,41 @@ Campos opcionais úteis:
 - `signals`: sintomas, erros, logs, status codes ou frases de gatilho.
 
 Nunca salve segredos, tokens, senhas, chaves privadas ou credenciais.
+
+## Glossário E Aliases Determinísticos
+
+Use `glossary.md` para diferenças estáveis de vocabulário que a busca lexical
+estrita não consegue inferir, como `k8s` e `kubernetes`. O glossário é dado
+explícito dentro do vault, então pode ser revisado e versionado como qualquer
+arquivo importante.
+
+```markdown
+# Glossary
+
+## Kubernetes
+
+aliases: k8s, kube
+status: approved
+scope: engineering
+```
+
+Cairn mantém a busca padrão conservadora. `search` e `retrieve` primeiro rodam a
+consulta BM25 exata. Só quando ela não retorna linhas, Cairn expande termos e
+aliases aprovados no glossário e tenta de novo com uma consulta OR barata. Isso
+mantém buscas comuns estáveis e ainda cobre gaps de sinônimos curados.
+
+Gerencie o glossário com:
+
+```bash
+cairn vocab add-term Kubernetes --alias k8s --alias kube --path ~/brain
+cairn vocab add-alias Kubernetes k8s-prod --path ~/brain
+cairn vocab suggest "kubernetes rollback" --path ~/brain --json
+cairn vocab validate --path ~/brain --json
+```
+
+`vocab suggest` nunca escreve no vault. Ele relata candidatos determinísticos a
+partir das notas locais para uma pessoa ou agente decidir se o alias deve virar
+vocabulário aprovado.
 
 ## Referência de Comandos
 
@@ -302,6 +340,9 @@ Use antes de abrir documentos completos. Este é o principal comando para
 economizar tokens. O ranker padrão `bm25` é estrito e estável. Use o
 experimental `--ranker rrf` quando a busca mistura sinais corretos com termos
 extras ou variantes lexicais.
+Se existir um `glossary.md` no topo do vault, o BM25 estrito recebe
+automaticamente uma tentativa de fallback com aliases aprovados apenas quando a
+consulta exata não retorna linhas.
 
 Filtros:
 
@@ -399,6 +440,22 @@ Resultados incluem o campo `kind`. `duplicate_candidate` indica que o match é
 forte o bastante para preferir atualizar a nota existente. `related` indica que
 a nota é contexto útil, mas o agente deve inspecionar antes de decidir entre
 atualizar ou criar uma nova nota.
+
+### `cairn vocab`
+
+Gerencia o glossário determinístico no topo do vault.
+
+```bash
+cairn vocab add-term Kubernetes --alias k8s --alias kube --path ~/brain
+cairn vocab add-alias Kubernetes kube --path ~/brain
+cairn vocab suggest "kubernetes rollback" --path ~/brain --limit 5
+cairn vocab validate --path ~/brain
+```
+
+Use quando várias pessoas ou agentes descrevem o mesmo conceito com termos
+diferentes. Busca e recuperação usam apenas termos com `status: approved`.
+Sugestões são somente leitura e devem ser revisadas antes de adicionar um novo
+alias.
 
 ### `cairn stats`
 

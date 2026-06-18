@@ -14,11 +14,12 @@
 {"id":"q14","query":"capture customer impact reproduction logs screenshots assign owning team severity customer facing update support owner","category":"passage_budget","mode":"passages","compare_mode":"documents","budget":250}
 {"id":"q15","query":"stop rollout redeploy previous artifact verify original production signal announce rollback status","category":"passage_budget","mode":"passages","compare_mode":"documents","budget":250}
 {"id":"q16","query":"lower checkout worker concurrency inspect slow transactions restart affected worker group connection pressure drops","category":"passage_budget","mode":"passages","compare_mode":"documents","budget":250}
-{"id":"q17","query":"deploy token rotation kubernetes secret","category":"rrf_extra_terms","ranker":"rrf","compare_ranker":"bm25","budget":600}
+{"id":"q17","query":"deploy token rotation asteroid secret","category":"rrf_extra_terms","ranker":"rrf","compare_ranker":"bm25","budget":600}
 {"id":"q18","query":"reconnecting","category":"rrf_inflection","ranker":"rrf","compare_ranker":"bm25","budget":600}
 {"id":"q19","query":"reconnecting","category":"rrf_passage","mode":"passages","ranker":"rrf","compare_ranker":"bm25","limit":1,"budget":250}
 {"id":"q20","query":"release denied workspace access","category":"alias","budget":600}
-{"id":"q21","query":"deploy token rotation kubernetes secret","category":"rrf_filter","ranker":"rrf","compare_ranker":"bm25","system":["ci"],"limit":1,"budget":600}
+{"id":"q21","query":"deploy token rotation asteroid secret","category":"rrf_filter","ranker":"rrf","compare_ranker":"bm25","system":["ci"],"limit":1,"budget":600}
 {"id":"q22","query":"po prioritize support backlog blocked customer severity","category":"role_workflow","type":"Process","budget":600}
 {"id":"q23","query":"request production access approval owner audit log","category":"access","type":"Process","budget":600}
 {"id":"q24","query":"ruff formatting python lint library standard","category":"library","type":"Decision","budget":600}
+{"id":"q25","query":"kubernetes rollback emergencial deploy","category":"vocabulary","budget":600}
