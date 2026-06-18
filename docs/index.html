@@ -3,16 +3,16 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Cairn - Agent-optimized Markdown memory</title>
+    <title>Cairn - Markdown knowledge for agent workflows</title>
     <meta
       name="description"
-      content="Cairn is a local, agent-agnostic Markdown knowledge vault for low-token search, retrieval, and writeback workflows."
+      content="Cairn is a local Markdown knowledge vault with CLI search, retrieval, writeback, and deterministic benchmarks."
     />
     <meta name="theme-color" content="#f7f3e8" />
-    <meta property="og:title" content="Cairn - Agent-optimized Markdown memory" />
+    <meta property="og:title" content="Cairn - Markdown knowledge for agent workflows" />
     <meta
       property="og:description"
-      content="Search, retrieve, solve, and write back reusable knowledge without locking it into an agent product."
+      content="A local Markdown vault with SQLite search, budgeted retrieval, writeback, and benchmark data."
     />
     <link
       rel="icon"
@@ -29,6 +29,7 @@
         <span>Cairn</span>
       </a>
       <nav class="nav-links" aria-label="Page sections">
+        <a href="learn.html">Learn</a>
         <a href="#benchmarks">Benchmarks</a>
         <a href="#workflow">Workflow</a>
         <a href="#roadmap">Roadmap</a>
@@ -57,24 +58,26 @@
           </div>
         </div>
         <div class="hero-content">
-          <p class="eyebrow" data-lang-content="en">Agent-optimized. Product-agnostic. Markdown-native.</p>
-          <p class="eyebrow" data-lang-content="pt">Otimizado para agentes. Agnóstico de produto. Nativo em Markdown.</p>
+          <p class="eyebrow" data-lang-content="en">Markdown vault. Local index. Agent workflow.</p>
+          <p class="eyebrow" data-lang-content="pt">Vault Markdown. Índice local. Fluxo com agentes.</p>
 
-          <h1 data-lang-content="en">Agent memory that stays yours.</h1>
-          <h1 data-lang-content="pt">Memória de agentes que continua sua.</h1>
+          <h1 data-lang-content="en">Markdown knowledge for search, retrieval, and writeback.</h1>
+          <h1 data-lang-content="pt">Conhecimento em Markdown para busca, recuperação e escrita.</h1>
 
           <p class="hero-copy" data-lang-content="en">
-            Cairn gives AI agents a local second brain: search first, retrieve only
-            useful context, solve the task, then write the lesson back to Markdown.
+            Cairn stores reusable notes as Markdown files, indexes them locally,
+            and exposes CLI commands that agents can use across tools.
           </p>
           <p class="hero-copy" data-lang-content="pt">
-            Cairn dá aos agentes de IA um segundo cérebro local: buscar primeiro,
-            recuperar só o contexto útil, resolver a tarefa e registrar o aprendizado
-            em Markdown.
+            Cairn armazena notas reutilizáveis como arquivos Markdown, indexa tudo
+            localmente e expõe comandos de CLI que agentes podem usar em diferentes
+            ferramentas.
           </p>
 
           <div class="hero-actions" aria-label="Primary actions">
             <a class="button primary" href="https://github.com/sinkz/cairn">GitHub</a>
+            <a class="button secondary" href="learn.html" data-lang-content="en">How it works</a>
+            <a class="button secondary" href="learn.html" data-lang-content="pt">Como funciona</a>
             <a class="button secondary" href="#benchmarks" data-lang-content="en">See benchmarks</a>
             <a class="button secondary" href="#benchmarks" data-lang-content="pt">Ver benchmarks</a>
           </div>
@@ -103,8 +106,8 @@
         <div class="section-heading">
           <p class="eyebrow" data-lang-content="en">Measured retrieval</p>
           <p class="eyebrow" data-lang-content="pt">Recuperação medida</p>
-          <h2 data-lang-content="en">Benchmarks are part of the product.</h2>
-          <h2 data-lang-content="pt">Benchmarks fazem parte do produto.</h2>
+          <h2 data-lang-content="en">Benchmark data is stored separately from the page.</h2>
+          <h2 data-lang-content="pt">Dados de benchmark ficam separados da página.</h2>
           <p data-lang-content="en">
             The public page reads benchmark data from JSON so new comparisons can
             be added without redesigning the page.
@@ -148,18 +151,19 @@
 
       <section class="section split-section" id="workflow">
         <div class="section-heading compact">
-          <p class="eyebrow" data-lang-content="en">Why Cairn exists</p>
-          <p class="eyebrow" data-lang-content="pt">Por que o Cairn existe</p>
-          <h2 data-lang-content="en">Stop solving the same hard problem twice.</h2>
-          <h2 data-lang-content="pt">Pare de resolver o mesmo problema difícil duas vezes.</h2>
+          <p class="eyebrow" data-lang-content="en">Workflow</p>
+          <p class="eyebrow" data-lang-content="pt">Fluxo</p>
+          <h2 data-lang-content="en">The basic loop is search, retrieve, solve, and write back.</h2>
+          <h2 data-lang-content="pt">O fluxo básico é buscar, recuperar, resolver e registrar.</h2>
           <p data-lang-content="en">
-            Cairn turns solved incidents, access processes, support procedures,
-            library notes, and product decisions into reusable agent context.
+            Notes can represent incidents, access processes, support procedures,
+            library references, and decisions. Agents use the vault as working
+            context instead of opening everything.
           </p>
           <p data-lang-content="pt">
-            Cairn transforma incidentes resolvidos, processos de acesso,
-            procedimentos de suporte, notas de bibliotecas e decisões de produto
-            em contexto reutilizável para agentes.
+            Notas podem representar incidentes, processos de acesso, procedimentos
+            de suporte, referências de bibliotecas e decisões. Agentes usam o vault
+            como contexto de trabalho sem abrir tudo.
           </p>
         </div>
 
@@ -197,10 +201,10 @@
 
       <section class="section use-cases">
         <div class="section-heading">
-          <p class="eyebrow" data-lang-content="en">Built for real vaults</p>
-          <p class="eyebrow" data-lang-content="pt">Feito para vaults reais</p>
-          <h2 data-lang-content="en">Individual notes and team memory use the same core.</h2>
-          <h2 data-lang-content="pt">Notas individuais e memória de time usam o mesmo core.</h2>
+          <p class="eyebrow" data-lang-content="en">Vault scope</p>
+          <p class="eyebrow" data-lang-content="pt">Escopo do vault</p>
+          <h2 data-lang-content="en">The same structure works for individual notes and shared team knowledge.</h2>
+          <h2 data-lang-content="pt">A mesma estrutura funciona para notas individuais e conhecimento compartilhado de time.</h2>
         </div>
         <div class="use-case-grid">
           <article>
@@ -228,15 +232,15 @@
         <div class="section-heading compact">
           <p class="eyebrow" data-lang-content="en">Roadmap</p>
           <p class="eyebrow" data-lang-content="pt">Roadmap</p>
-          <h2 data-lang-content="en">The next priority is reliable writeback evaluation.</h2>
-          <h2 data-lang-content="pt">A próxima prioridade é avaliar escrita de forma confiável.</h2>
+          <h2 data-lang-content="en">Current roadmap focus: writeback evaluation.</h2>
+          <h2 data-lang-content="pt">Foco atual do roadmap: avaliação de escrita.</h2>
           <p data-lang-content="en">
-            Adapters are useful, but the core has to prove that agents can search,
-            update, and avoid duplicates without regressions.
+            The next measurement work is about proving that agents can search,
+            update, and avoid duplicate notes without regressions.
           </p>
           <p data-lang-content="pt">
-            Adapters são úteis, mas o core precisa provar que agentes conseguem
-            buscar, atualizar e evitar duplicatas sem regressões.
+            A próxima medição é provar que agentes conseguem buscar, atualizar e
+            evitar notas duplicadas sem regressões.
           </p>
         </div>
         <div class="roadmap-columns">
@@ -264,8 +268,8 @@
     <footer class="site-footer">
       <div>
         <strong>Cairn</strong>
-        <p data-lang-content="en">Local-first knowledge for agents that should remember.</p>
-        <p data-lang-content="pt">Conhecimento local-first para agentes que devem lembrar.</p>
+        <p data-lang-content="en">Local Markdown knowledge for search, retrieval, and writeback.</p>
+        <p data-lang-content="pt">Conhecimento local em Markdown para busca, recuperação e escrita.</p>
       </div>
       <div class="footer-links">
         <a href="https://github.com/sinkz/cairn">GitHub</a>

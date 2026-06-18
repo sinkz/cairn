@@ -1,43 +1,67 @@
-# Cairn
+<div align="center">
+  <h1>Cairn</h1>
+  <p><strong>Conhecimento em Markdown para fluxos de busca, recuperação e escrita.</strong></p>
+  <p>
+    <a href="https://sinkz.github.io/cairn/">Site</a> ·
+    <a href="https://sinkz.github.io/cairn/learn.html">Como funciona</a> ·
+    <a href="docs/guides/usage.pt-BR.md">Guia de uso</a> ·
+    <a href="examples/README.md">Exemplos</a> ·
+    <a href="README.md">English</a>
+  </p>
+  <p>
+    <img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white">
+    <img alt="Dependências de runtime: zero" src="https://img.shields.io/badge/dependencias_runtime-0-2f6f4e">
+    <img alt="Testes de regressão: 111" src="https://img.shields.io/badge/testes-111-3b6ea8">
+    <img alt="Recall at 3: 1.00" src="https://img.shields.io/badge/Recall%403-1.00-2f6f4e">
+    <img alt="Redução de contexto: 92.16%" src="https://img.shields.io/badge/reducao_contexto-92.16%25-8a5a44">
+    <img alt="Licença: MIT" src="https://img.shields.io/badge/licenca-MIT-15130f">
+  </p>
+</div>
 
-Cairn é uma CLI local para um vault de conhecimento em Markdown, otimizada para
-fluxos com agentes de IA. Ele ajuda agentes a salvar notas reutilizáveis,
-buscá-las depois e recuperar só o contexto necessário para a tarefa atual.
+## O Que É O Cairn
 
-O core é agnóstico de agentes: funciona com Codex, Claude, OpenCode, GitHub
-Copilot ou qualquer harness que consiga rodar comandos no shell. Cairn entrega
-mais valor quando um agente segue o ciclo de buscar, recuperar contexto,
-resolver e registrar o aprendizado, mas a fonte da verdade continua sendo
-Markdown puro com um índice SQLite local.
+Cairn é uma CLI local para um vault de conhecimento em Markdown. Ele ajuda
+pessoas e agentes a guardar notas reutilizáveis, buscá-las depois, recuperar só
+o contexto necessário para uma tarefa e registrar novos aprendizados no vault.
 
-English version: [README.md](README.md)
+A fonte da verdade é Markdown puro com frontmatter. A busca usa um índice SQLite
+local e reconstruível. Cairn entrega mais valor dentro de fluxos com agentes,
+mas não depende de um produto específico.
 
-Site do projeto: [sinkz.github.io/cairn](https://sinkz.github.io/cairn/)
+| Área | O que você ganha |
+| --- | --- |
+| Notas pessoais | Bugs, decisões, referências, aprendizados e processos recorrentes |
+| Times de engenharia | Runbooks, incidentes, detalhes de bibliotecas e decisões de arquitetura |
+| Suporte e produto | Acessos, escalonamentos, regras de produto e procedimentos de atendimento |
+| Fluxos com agentes | Buscar primeiro, recuperar contexto compacto, resolver e atualizar ou criar notas |
 
-## Para Que Serve
+## Snapshot Atual Do Benchmark
 
-Cairn é útil para lembrar coisas como:
+O benchmark determinístico roda localmente sem chamadas a modelos. Ele mede
+qualidade de ranking, orçamento de tokens e redução de contexto em passagens
+contra documentos completos.
 
-- como um bug recorrente foi diagnosticado e corrigido;
-- como pedir acesso ou executar um processo de time;
-- qual biblioteca, ferramenta ou decisão de arquitetura foi escolhida e por quê;
-- procedimentos de suporte e workflows de produto;
-- notas pessoais que um agente deve conseguir encontrar depois.
+| Métrica | Atual | Significado |
+| --- | ---: | --- |
+| Recall@3 | `1.00` | Notas esperadas aparecem nos três primeiros resultados. |
+| MRR@3 | `1.00` | Resultados relevantes aparecem primeiro no conjunto atual. |
+| nDCG@3 | `0.9931` | Qualidade de ranking contra rótulos determinísticos de relevância. |
+| Redução de contexto | `92.16%` | Recuperação por passagens retorna muito menos texto que abrir documentos completos. |
+| Redução em comparativos | `53.73%` | Redução medida nas rodadas comparativas configuradas. |
+| Testes de regressão | `111` | Testes unitários e de workflow rodados antes da publicação atual. |
 
-O vault é composto por arquivos Markdown com frontmatter. O índice SQLite é
-local, reconstruível e independente de qualquer fornecedor de agente.
-
-## Requisitos
-
-- Python 3.11 ou mais novo.
-- Nenhuma dependência de runtime fora da biblioteca padrão do Python.
-- Git é opcional, mas recomendado para versionar o vault.
-
-## Instalar A Partir Do Código Fonte
-
-Na raiz do repositório:
+Os dados do benchmark também são publicados no site por
+[`docs/data/benchmarks.json`](docs/data/benchmarks.json).
 
 ```bash
+python bench/run_eval.py --quiet --compare-golden bench/golden.json
+```
+
+## Começo Rápido
+
+```bash
+git clone https://github.com/sinkz/cairn.git
+cd cairn
 python -m pip install -e .
 cairn --help
 ```
@@ -56,9 +80,7 @@ $env:PYTHONPATH = Join-Path (Resolve-Path .).Path "src"
 python -m cairn --help
 ```
 
-## Criar O Primeiro Vault
-
-Escolha onde o vault vai ficar e inicialize:
+## Criar Um Vault
 
 ```bash
 cairn init --path CAMINHO_DO_VAULT --profile personal
@@ -71,15 +93,15 @@ Perfis criam a estrutura inicial de pastas e schema:
 
 | Perfil | Use para |
 | --- | --- |
-| `personal` | notas pessoais, aprendizado, workflows e referências |
-| `engineering` | bugs, runbooks, incidentes, bibliotecas e decisões |
-| `support` | triagem de suporte, procedimentos, FAQs e escalonamentos |
-| `product` | requisitos, discovery, métricas e decisões de release |
-| `custom` | um schema mínimo para adaptar |
+| `personal` | Notas pessoais, aprendizado, workflows e referências |
+| `engineering` | Bugs, runbooks, incidentes, bibliotecas e decisões |
+| `support` | Triagem de suporte, procedimentos, FAQs e escalonamentos |
+| `product` | Requisitos, discovery, métricas e decisões de release |
+| `custom` | Um schema mínimo para adaptar |
 
-## Adicionar E Buscar Notas
+## Fluxo Diário
 
-Crie uma nota:
+### 1. Capturar uma nota
 
 ```bash
 cairn capture --path CAMINHO_DO_VAULT \
@@ -93,8 +115,7 @@ cairn capture --path CAMINHO_DO_VAULT \
   --body "Deploy falhou depois de uma rotação de token. Atualize o segredo de CI e rode novamente o job que falhou."
 ```
 
-`capture` cria um arquivo Markdown válido com uma seção `# Context`. Para notas
-mais ricas, mantenha o corpo Markdown em um arquivo e passe direto para a CLI:
+Para notas maiores, mantenha o corpo em um arquivo Markdown:
 
 ```bash
 cairn capture --path CAMINHO_DO_VAULT \
@@ -106,20 +127,15 @@ cairn capture --path CAMINHO_DO_VAULT \
   --body-file CAMINHO_DO_CORPO_DA_NOTA.md
 ```
 
-Atualize o índice:
+### 2. Buscar antes de abrir arquivos
 
 ```bash
 cairn index --path CAMINHO_DO_VAULT
-```
-
-Busque antes de abrir arquivos completos:
-
-```bash
 cairn search "deploy 403 token" --path CAMINHO_DO_VAULT --limit 3
 cairn search "deploy token rotation kubernetes secret" --path CAMINHO_DO_VAULT --ranker rrf
 ```
 
-Recupere um pacote de contexto dentro de um orçamento para o agente:
+### 3. Recuperar contexto compacto
 
 ```bash
 cairn retrieve "deploy 403 token" --path CAMINHO_DO_VAULT --budget 800
@@ -127,15 +143,11 @@ cairn retrieve "deploy 403 token" --path CAMINHO_DO_VAULT --mode passages --budg
 cairn retrieve "deploy token rotation kubernetes secret" --path CAMINHO_DO_VAULT --ranker auto --budget 800
 ```
 
-Procure uma nota existente antes de criar outra:
+### 4. Atualizar em vez de duplicar
 
 ```bash
 cairn similar "deploy forbidden token" --path CAMINHO_DO_VAULT --limit 5
-```
 
-Se `similar` encontrar o mesmo assunto, atualize:
-
-```bash
 cairn update knowledge/deploy-403-after-token-rotation.md \
   --path CAMINHO_DO_VAULT \
   --append "Adicionar o passo de verificação usado no incidente mais recente."
@@ -144,26 +156,26 @@ cairn update knowledge/deploy-403-after-token-rotation.md \
 Para atualizações maiores, use `--append-file CAMINHO_DO_TEXTO.md` ou envie o
 conteúdo por pipe com `--append-stdin`.
 
-## Resumo Dos Comandos
+## Comandos
 
 | Comando | Função |
 | --- | --- |
-| `cairn init` | cria um vault |
-| `cairn validate` | verifica frontmatter, schema e valores comuns com aparência de segredo |
-| `cairn index` | cria ou atualiza o índice local |
-| `cairn doctor` | verifica saúde do vault e do índice |
-| `cairn capture` / `cairn add` | cria uma nota |
-| `cairn similar` | encontra notas existentes antes de criar duplicata |
-| `cairn search` | retorna snippets e paths ranqueados |
-| `cairn retrieve` | retorna contexto dentro de um orçamento de tokens |
-| `cairn show` | abre um documento completo, seção, snippet ou intervalo de linhas |
-| `cairn update` | adiciona informação reutilizável a uma nota existente |
-| `cairn setup-agent` | cria instruções específicas como `CODEX.md` |
-| `cairn refresh-guides` | atualiza guias de agente gerados |
-| `cairn stats` | mostra contagens e tamanho aproximado em tokens |
-| `cairn export` / `cairn import` | move um vault como arquivo zip |
+| `cairn init` | Cria um vault |
+| `cairn validate` | Verifica frontmatter, schema e valores comuns com aparência de segredo |
+| `cairn index` | Cria ou atualiza o índice local |
+| `cairn doctor` | Verifica saúde do vault e do índice |
+| `cairn capture` / `cairn add` | Cria uma nota |
+| `cairn similar` | Encontra notas existentes antes de criar duplicata |
+| `cairn search` | Retorna snippets e paths ranqueados |
+| `cairn retrieve` | Retorna contexto dentro de um orçamento de tokens |
+| `cairn show` | Abre documento completo, seção, snippet ou intervalo de linhas |
+| `cairn update` | Adiciona informação reutilizável a uma nota existente |
+| `cairn setup-agent` | Cria instruções específicas como `CODEX.md` |
+| `cairn refresh-guides` | Atualiza guias de agente gerados |
+| `cairn stats` | Mostra contagens e tamanho aproximado em tokens |
+| `cairn export` / `cairn import` | Move um vault como arquivo zip |
 
-## Testar O Vault De Exemplo
+## Vault De Exemplo
 
 ```bash
 cairn validate --path examples/engineering-vault
@@ -176,12 +188,15 @@ Veja [examples/README.md](examples/README.md) para mais walkthroughs.
 
 ## Documentação
 
-- [Guia de uso](docs/guides/usage.pt-BR.md)
-- [Usage guide in English](docs/guides/usage.md)
-- [Site do projeto](https://sinkz.github.io/cairn/)
-- [Vaults de exemplo](examples/README.md)
-- [Roadmap](ROADMAP.md)
-- [Changelog](CHANGELOG.md)
+| Página | Descrição |
+| --- | --- |
+| [Site](https://sinkz.github.io/cairn/) | Overview público e cards de benchmark |
+| [Como funciona](https://sinkz.github.io/cairn/learn.html) | Explicação conceitual e técnica |
+| [Guia de uso](docs/guides/usage.pt-BR.md) | Guia completo dos comandos |
+| [Vaults de exemplo](examples/README.md) | Exemplos reproduzíveis |
+| [Roadmap](ROADMAP.md) | Fases atuais de implementação |
+| [Changelog](CHANGELOG.md) | Mudanças publicadas |
+| [README em inglês](README.md) | Documentação em inglês |
 
 ## Desenvolvimento
 

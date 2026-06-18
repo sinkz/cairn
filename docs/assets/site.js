@@ -121,5 +121,24 @@ document.querySelectorAll("[data-set-lang]").forEach((button) => {
   button.addEventListener("click", () => setLanguage(button.dataset.setLang));
 });
 
+function activateTab(target) {
+  document.querySelectorAll("[data-tab-target]").forEach((button) => {
+    button.setAttribute("aria-selected", String(button.dataset.tabTarget === target));
+  });
+
+  document.querySelectorAll("[data-tab-panel]").forEach((panel) => {
+    panel.hidden = panel.dataset.tabPanel !== target;
+  });
+}
+
+document.querySelectorAll("[data-tab-target]").forEach((button) => {
+  button.addEventListener("click", () => activateTab(button.dataset.tabTarget));
+});
+
+const selectedTab = document.querySelector('[data-tab-target][aria-selected="true"]');
+if (selectedTab) {
+  activateTab(selectedTab.dataset.tabTarget);
+}
+
 setLanguage(state.lang);
 loadBenchmark();

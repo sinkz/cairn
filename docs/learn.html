@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>How Cairn Works - Agent memory in Markdown</title>
+    <meta
+      name="description"
+      content="A practical and technical explanation of how Cairn works for solo users, teams, agents, search, writeback, and benchmarks."
+    />
+    <meta name="theme-color" content="#f7f3e8" />
+    <meta property="og:title" content="How Cairn Works" />
+    <meta
+      property="og:description"
+      content="Understand Cairn from use cases to algorithms: Markdown vaults, search, retrieval, writeback, and deterministic benchmarks."
+    />
+    <link
+      rel="icon"
+      href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%2315130f"/><path d="M18 18h28v7H26v7h15v7H26v7h21v7H18z" fill="%23f7f3e8"/></svg>'
+    />
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body data-lang="en">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header" aria-label="Primary navigation">
+      <a class="brand" href="index.html" aria-label="Cairn home">
+        <span class="brand-mark">CA</span>
+        <span>Cairn</span>
+      </a>
+      <nav class="nav-links" aria-label="Page sections">
+        <a href="index.html">Overview</a>
+        <a href="#lenses">Lenses</a>
+        <a href="#positioning">Positioning</a>
+        <a href="#algorithm">Algorithm</a>
+        <a href="#benchmarks">Benchmarks</a>
+        <a href="https://github.com/sinkz/cairn">GitHub</a>
+      </nav>
+      <div class="language-switch" aria-label="Language">
+        <button class="language-button" type="button" data-set-lang="en" aria-pressed="true">EN</button>
+        <button class="language-button" type="button" data-set-lang="pt" aria-pressed="false">PT-BR</button>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="learn-hero" id="top">
+        <div class="learn-hero-copy">
+          <p class="eyebrow" data-lang-content="en">Explain it to product, engineering, and research</p>
+          <p class="eyebrow" data-lang-content="pt">Explicação para produto, engenharia e pesquisa</p>
+          <h1 data-lang-content="en">How Cairn stores and retrieves Markdown knowledge.</h1>
+          <h1 data-lang-content="pt">Como o Cairn armazena e recupera conhecimento em Markdown.</h1>
+          <p class="hero-copy" data-lang-content="en">
+            Cairn uses Markdown files, frontmatter, a local SQLite index, and CLI
+            commands for search, retrieval, and writeback. This page explains the
+            moving parts without assuming a specific agent product.
+          </p>
+          <p class="hero-copy" data-lang-content="pt">
+            Cairn usa arquivos Markdown, frontmatter, um índice SQLite local e
+            comandos de CLI para busca, recuperação e escrita. Esta página explica as
+            partes do projeto sem assumir um produto de agente específico.
+          </p>
+        </div>
+
+        <div class="system-map" aria-label="Cairn system map">
+          <div class="map-node source">
+            <span>01</span>
+            <strong>Markdown vault</strong>
+            <small>frontmatter + sections</small>
+          </div>
+          <div class="map-node index">
+            <span>02</span>
+            <strong>SQLite FTS</strong>
+            <small>BM25 + filters</small>
+          </div>
+          <div class="map-node retrieve">
+            <span>03</span>
+            <strong>Budgeted context</strong>
+            <small>documents or passages</small>
+          </div>
+          <div class="map-node write">
+            <span>04</span>
+            <strong>Writeback</strong>
+            <small>similar + update</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="section lens-section" id="lenses">
+        <div class="section-heading">
+          <p class="eyebrow" data-lang-content="en">Choose the explanation level</p>
+          <p class="eyebrow" data-lang-content="pt">Escolha o nível da explicação</p>
+          <h2 data-lang-content="en">The same project, explained through different lenses.</h2>
+          <h2 data-lang-content="pt">O mesmo projeto, explicado por diferentes lentes.</h2>
+        </div>
+
+        <div class="tab-shell">
+          <div class="tab-list" role="tablist" aria-label="Explanation lenses">
+            <button class="tab-button" type="button" role="tab" aria-selected="true" data-tab-target="use-cases">
+              <span data-lang-content="en">Use cases</span>
+              <span data-lang-content="pt">Casos de uso</span>
+            </button>
+            <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab-target="workflow">
+              <span data-lang-content="en">Workflow</span>
+              <span data-lang-content="pt">Fluxo</span>
+            </button>
+            <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab-target="search">
+              <span data-lang-content="en">Search</span>
+              <span data-lang-content="pt">Busca</span>
+            </button>
+            <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab-target="benchmarking">
+              <span data-lang-content="en">Benchmarks</span>
+              <span data-lang-content="pt">Benchmarks</span>
+            </button>
+            <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab-target="technical">
+              <span data-lang-content="en">Technical</span>
+              <span data-lang-content="pt">Técnico</span>
+            </button>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-tab-panel="use-cases">
+            <div class="explain-grid">
+              <article class="explain-card">
+                <span>Solo</span>
+                <h3 data-lang-content="en">A personal second brain that agents can search.</h3>
+                <h3 data-lang-content="pt">Um segundo cérebro pessoal que agentes conseguem buscar.</h3>
+                <p data-lang-content="en">
+                  Save recurring bugs, setup steps, access notes, library choices,
+                  and lessons you normally forget after the pressure is gone.
+                </p>
+                <p data-lang-content="pt">
+                  Salve bugs recorrentes, passos de setup, notas de acesso, escolhas
+                  de bibliotecas e aprendizados que normalmente somem depois da pressão.
+                </p>
+              </article>
+              <article class="explain-card">
+                <span>Teams</span>
+                <h3 data-lang-content="en">Shared operational memory in versioned Markdown.</h3>
+                <h3 data-lang-content="pt">Memória operacional compartilhada em Markdown versionado.</h3>
+                <p data-lang-content="en">
+                  Teams can keep runbooks, support playbooks, product decisions, and
+                  incident notes in versioned Markdown.
+                </p>
+                <p data-lang-content="pt">
+                  Times podem manter runbooks, playbooks de suporte, decisões de
+                  produto e notas de incidente em Markdown versionado.
+                </p>
+              </article>
+              <article class="explain-card">
+                <span>Agents</span>
+                <h3 data-lang-content="en">Search first, then spend context where it matters.</h3>
+                <h3 data-lang-content="pt">Buscar primeiro, gastar contexto onde importa.</h3>
+                <p data-lang-content="en">
+                  Agents can retrieve compact packets instead of opening every note,
+                  then write back reusable knowledge after solving the task.
+                </p>
+                <p data-lang-content="pt">
+                  Agentes recuperam pacotes compactos em vez de abrir todas as notas
+                  e registram conhecimento reutilizável depois de resolver a tarefa.
+                </p>
+              </article>
+            </div>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-tab-panel="workflow" hidden>
+            <div class="timeline-diagram">
+              <article>
+                <span>1</span>
+                <h3 data-lang-content="en">Ask or hit a problem</h3>
+                <h3 data-lang-content="pt">Pergunta ou problema</h3>
+                <p data-lang-content="en">A bug, access question, support case, process, or decision comes up.</p>
+                <p data-lang-content="pt">Surge um bug, dúvida de acesso, caso de suporte, processo ou decisão.</p>
+              </article>
+              <article>
+                <span>2</span>
+                <h3 data-lang-content="en">Search the vault</h3>
+                <h3 data-lang-content="pt">Buscar no vault</h3>
+                <p data-lang-content="en">Cairn returns paths and snippets before large documents are opened.</p>
+                <p data-lang-content="pt">Cairn retorna paths e snippets antes de abrir documentos grandes.</p>
+              </article>
+              <article>
+                <span>3</span>
+                <h3 data-lang-content="en">Retrieve a packet</h3>
+                <h3 data-lang-content="pt">Recuperar contexto</h3>
+                <p data-lang-content="en">The agent gets documents or passages under a token budget.</p>
+                <p data-lang-content="pt">O agente recebe documentos ou passagens dentro de um orçamento de tokens.</p>
+              </article>
+              <article>
+                <span>4</span>
+                <h3 data-lang-content="en">Write back</h3>
+                <h3 data-lang-content="pt">Registrar aprendizado</h3>
+                <p data-lang-content="en">Similar notes are updated; new reusable knowledge is captured.</p>
+                <p data-lang-content="pt">Notas similares são atualizadas; conhecimento novo e reutilizável é capturado.</p>
+              </article>
+            </div>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-tab-panel="search" hidden>
+            <div class="stack-diagram">
+              <div class="stack-row">
+                <strong>BM25</strong>
+                <p data-lang-content="en">Strict lexical default. Predictable, local, and cheap.</p>
+                <p data-lang-content="pt">Padrão lexical estrito. Previsível, local e leve.</p>
+              </div>
+              <div class="stack-row">
+                <strong>RRF</strong>
+                <p data-lang-content="en">Fuses multiple lexical runs when a query has extra words or safe variants.</p>
+                <p data-lang-content="pt">Combina rodadas lexicais quando a query tem termos extras ou variantes seguras.</p>
+              </div>
+              <div class="stack-row">
+                <strong>Passages</strong>
+                <p data-lang-content="en">Indexes sections so retrieval can return the useful part, not the whole file.</p>
+                <p data-lang-content="pt">Indexa seções para retornar a parte útil, não o arquivo inteiro.</p>
+              </div>
+              <div class="stack-row">
+                <strong>Similar</strong>
+                <p data-lang-content="en">Combines search and fingerprints to avoid creating duplicate notes.</p>
+                <p data-lang-content="pt">Combina busca e fingerprints para evitar notas duplicadas.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-tab-panel="benchmarking" hidden>
+            <div class="metric-explainer-grid">
+              <article>
+                <strong>Recall@3</strong>
+                <p data-lang-content="en">Did the expected note appear in the first three results?</p>
+                <p data-lang-content="pt">A nota esperada apareceu nos três primeiros resultados?</p>
+              </article>
+              <article>
+                <strong>MRR@3</strong>
+                <p data-lang-content="en">How early did the first relevant result appear?</p>
+                <p data-lang-content="pt">Quão cedo apareceu o primeiro resultado relevante?</p>
+              </article>
+              <article>
+                <strong>nDCG@3</strong>
+                <p data-lang-content="en">Was the ranking order good, considering graded relevance?</p>
+                <p data-lang-content="pt">A ordem do ranking foi boa, considerando relevância graduada?</p>
+              </article>
+              <article>
+                <strong>Context reduction</strong>
+                <p data-lang-content="en">How much text did passages save compared with full documents?</p>
+                <p data-lang-content="pt">Quanto texto as passagens economizaram contra documentos completos?</p>
+              </article>
+            </div>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-tab-panel="technical" hidden>
+            <div class="technical-map">
+              <code>Markdown files</code>
+              <span></span>
+              <code>frontmatter parser</code>
+              <span></span>
+              <code>SQLite FTS5</code>
+              <span></span>
+              <code>search / retrieve / similar</code>
+              <span></span>
+              <code>agent writeback</code>
+            </div>
+            <p class="panel-footnote" data-lang-content="en">
+              The core has no mandatory model dependency. Embeddings can come later as
+              an optional backend, not as the foundation.
+            </p>
+            <p class="panel-footnote" data-lang-content="pt">
+              O core não depende obrigatoriamente de modelos. Embeddings podem entrar
+              depois como backend opcional, não como fundação.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section positioning-section" id="positioning">
+        <div class="section-heading">
+          <p class="eyebrow" data-lang-content="en">Positioning</p>
+          <p class="eyebrow" data-lang-content="pt">Posicionamento</p>
+          <h2 data-lang-content="en">Where Cairn fits next to Markdown note tools.</h2>
+          <h2 data-lang-content="pt">Onde o Cairn se encaixa ao lado de ferramentas de notas em Markdown.</h2>
+          <p data-lang-content="en">
+            Obsidian-style tools are useful human workspaces for writing, linking,
+            and browsing notes. Cairn uses the same durable Markdown base, but adds a
+            CLI-oriented layer for indexing, retrieval, and agent writeback.
+          </p>
+          <p data-lang-content="pt">
+            Ferramentas no estilo Obsidian são workspaces úteis para humanos
+            escreverem, linkarem e navegarem notas. Cairn usa a mesma base durável em
+            Markdown, mas adiciona uma camada orientada a CLI para indexação,
+            recuperação e escrita por agentes.
+          </p>
+        </div>
+
+        <div class="comparison-grid">
+          <article>
+            <span data-lang-content="en">Human note apps</span>
+            <span data-lang-content="pt">Apps humanos de notas</span>
+            <h3 data-lang-content="en">Human-facing navigation and editing.</h3>
+            <h3 data-lang-content="pt">Navegação e edição voltadas para humanos.</h3>
+            <p data-lang-content="en">
+              A visual workspace helps humans curate knowledge. Cairn can coexist with
+              Markdown vaults, but it does not need a desktop app, plugin system, or
+              proprietary workspace to operate.
+            </p>
+            <p data-lang-content="pt">
+              Um workspace visual ajuda humanos a curar conhecimento. Cairn pode
+              coexistir com vaults Markdown, mas não precisa de app desktop, sistema de
+              plugins ou workspace proprietário para operar.
+            </p>
+          </article>
+          <article>
+            <span data-lang-content="en">Cairn</span>
+            <span data-lang-content="pt">Cairn</span>
+            <h3 data-lang-content="en">CLI retrieval and writeback for agents.</h3>
+            <h3 data-lang-content="pt">Recuperação e escrita por CLI para agentes.</h3>
+            <p data-lang-content="en">
+              Cairn adds a CLI contract, local index, budgeted retrieval, similar-note
+              checks, secret redaction, and deterministic benchmarks around Markdown.
+            </p>
+            <p data-lang-content="pt">
+              Cairn adiciona contrato de CLI, índice local, recuperação com orçamento,
+              checagem de notas similares, redação de segredos e benchmarks
+              determinísticos em volta do Markdown.
+            </p>
+          </article>
+        </div>
+
+        <div class="okf-panel">
+          <div>
+            <p class="eyebrow" data-lang-content="en">OKF reference</p>
+            <p class="eyebrow" data-lang-content="pt">Referência OKF</p>
+            <h3 data-lang-content="en">What Cairn borrows from Open Knowledge Format.</h3>
+            <h3 data-lang-content="pt">O que o Cairn aproveita do Open Knowledge Format.</h3>
+            <p data-lang-content="en">
+              Google describes OKF v0.1 as an open, vendor-neutral, human- and
+              agent-friendly way to represent knowledge as directories of Markdown files
+              with YAML frontmatter. In OKF, each concept is one file; the file path is
+              its identity; frontmatter carries structured fields; the Markdown body
+              carries the prose; links can turn the bundle into a graph; `index.md` and
+              `log.md` can support progressive navigation and history.
+            </p>
+            <p data-lang-content="pt">
+              O Google descreve o OKF v0.1 como um formato aberto, neutro de fornecedor,
+              amigável para humanos e agentes, que representa conhecimento como
+              diretórios de arquivos Markdown com frontmatter YAML. No OKF, cada
+              conceito é um arquivo; o caminho do arquivo é sua identidade; o
+              frontmatter carrega campos estruturados; o corpo Markdown carrega o texto;
+              links podem transformar o bundle em um grafo; `index.md` e `log.md` podem
+              apoiar navegação progressiva e histórico.
+            </p>
+          </div>
+          <div class="okf-steps" aria-label="OKF influence">
+            <article>
+              <strong>OKF shape</strong>
+              <p data-lang-content="en">Concept files, YAML frontmatter, Markdown bodies, links, index, and log.</p>
+              <p data-lang-content="pt">Arquivos de conceito, frontmatter YAML, corpos Markdown, links, índice e log.</p>
+            </article>
+            <article>
+              <strong>Cairn adaptation</strong>
+              <p data-lang-content="en">A tighter schema for agent search: tags, aliases, systems, signals, timestamps, and types.</p>
+              <p data-lang-content="pt">Um schema mais fechado para busca por agentes: tags, aliases, sistemas, sinais, timestamps e tipos.</p>
+            </article>
+            <article>
+              <strong>Agent optimization</strong>
+              <p data-lang-content="en">Local FTS, passage retrieval, writeback commands, duplicate checks, redaction, and benchmark metrics.</p>
+              <p data-lang-content="pt">FTS local, recuperação por passagens, comandos de escrita, checagem de duplicatas, redação e métricas de benchmark.</p>
+            </article>
+          </div>
+        </div>
+
+        <div class="source-strip" aria-label="Sources">
+          <span data-lang-content="en">Sources:</span>
+          <span data-lang-content="pt">Fontes:</span>
+          <a href="https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing">Google Cloud OKF announcement</a>
+          <a href="https://github.com/GoogleCloudPlatform/knowledge-catalog/tree/main/okf">GoogleCloudPlatform/knowledge-catalog OKF</a>
+          <a href="https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md">OKF v0.1 specification</a>
+        </div>
+      </section>
+
+      <section class="section split-section" id="algorithm">
+        <div class="section-heading compact">
+          <p class="eyebrow" data-lang-content="en">Algorithm and writeback</p>
+          <p class="eyebrow" data-lang-content="pt">Algoritmo e escrita</p>
+          <h2 data-lang-content="en">Search and retrieval use a staged local pipeline.</h2>
+          <h2 data-lang-content="pt">Busca e recuperação usam um pipeline local em etapas.</h2>
+          <p data-lang-content="en">
+            The default search path is strict BM25 over the local SQLite index. RRF can
+            be requested directly, and `retrieve --ranker auto` tries BM25 first before
+            falling back to RRF when no context is returned.
+          </p>
+          <p data-lang-content="pt">
+            O caminho padrão é BM25 estrito sobre o índice SQLite local. RRF pode ser
+            pedido diretamente, e `retrieve --ranker auto` tenta BM25 primeiro antes de
+            cair para RRF quando nenhum contexto é retornado.
+          </p>
+        </div>
+
+        <div class="algorithm-board">
+          <article>
+            <span>index</span>
+            <h3>Frontmatter + body</h3>
+            <p data-lang-content="en">Title, description, tags, aliases, systems, signals, body, and passages are indexed locally.</p>
+            <p data-lang-content="pt">Título, descrição, tags, aliases, sistemas, sinais, corpo e passagens são indexados localmente.</p>
+          </article>
+          <article>
+            <span>rank</span>
+            <h3>BM25 / RRF / auto</h3>
+            <p data-lang-content="en">BM25 handles strict ranking. RRF recovers noisy queries. Auto tries BM25 first.</p>
+            <p data-lang-content="pt">BM25 faz o ranking estrito. RRF recupera queries ruidosas. Auto tenta BM25 primeiro.</p>
+          </article>
+          <article>
+            <span>budget</span>
+            <h3>Documents or passages</h3>
+            <p data-lang-content="en">Retrieval fits content into an approximate token budget and redacts common secret-like values.</p>
+            <p data-lang-content="pt">A recuperação encaixa conteúdo em um orçamento aproximado de tokens e redige valores com aparência de segredo.</p>
+          </article>
+          <article>
+            <span>write</span>
+            <h3>Similar before capture</h3>
+            <p data-lang-content="en">Agents check for duplicates, update strong matches, and capture new reusable knowledge.</p>
+            <p data-lang-content="pt">Agentes checam duplicatas, atualizam matches fortes e capturam novo conhecimento reutilizável.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section use-cases">
+        <div class="section-heading">
+          <p class="eyebrow" data-lang-content="en">Concrete scenarios</p>
+          <p class="eyebrow" data-lang-content="pt">Cenários concretos</p>
+          <h2 data-lang-content="en">Examples of information that can live in a vault.</h2>
+          <h2 data-lang-content="pt">Exemplos de informação que podem viver em um vault.</h2>
+        </div>
+        <div class="scenario-grid">
+          <article>
+            <span>Bug memory</span>
+            <h3 data-lang-content="en">"We solved this 4 months ago."</h3>
+            <h3 data-lang-content="pt">"A gente resolveu isso há 4 meses."</h3>
+            <p data-lang-content="en">The agent finds the old runbook, retrieves the resolution, and updates it with the new verification step.</p>
+            <p data-lang-content="pt">O agente encontra o runbook antigo, recupera a resolução e atualiza com o novo passo de verificação.</p>
+          </article>
+          <article>
+            <span>Access process</span>
+            <h3 data-lang-content="en">"How do I get approval for this system?"</h3>
+            <h3 data-lang-content="pt">"Como consigo aprovação para esse sistema?"</h3>
+            <p data-lang-content="en">Cairn stores the owner, steps, expected delay, and escalation path as a process note.</p>
+            <p data-lang-content="pt">Cairn guarda responsável, passos, prazo esperado e escalonamento como nota de processo.</p>
+          </article>
+          <article>
+            <span>Support playbook</span>
+            <h3 data-lang-content="en">"Customer sees HTTP 400 after SDK upgrade."</h3>
+            <h3 data-lang-content="pt">"Cliente vê HTTP 400 após upgrade do SDK."</h3>
+            <p data-lang-content="en">Support or product teams can find known symptoms, payload checks, and customer-facing steps.</p>
+            <p data-lang-content="pt">Times de suporte ou produto encontram sintomas conhecidos, checagens de payload e passos para atendimento.</p>
+          </article>
+          <article>
+            <span>Decision memory</span>
+            <h3 data-lang-content="en">"Why did we choose this library?"</h3>
+            <h3 data-lang-content="pt">"Por que escolhemos essa biblioteca?"</h3>
+            <p data-lang-content="en">Architecture and product decisions keep the why attached to future searches.</p>
+            <p data-lang-content="pt">Decisões de arquitetura e produto mantêm o porquê disponível em buscas futuras.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="benchmarks">
+        <div class="section-heading">
+          <p class="eyebrow" data-lang-content="en">Benchmark methodology</p>
+          <p class="eyebrow" data-lang-content="pt">Metodologia de benchmark</p>
+          <h2 data-lang-content="en">The benchmark measures retrieval quality before a model gets involved.</h2>
+          <h2 data-lang-content="pt">O benchmark mede qualidade de recuperação antes de envolver um modelo.</h2>
+          <p data-lang-content="en">
+            Fixtures define vault notes, queries, expected relevance labels, golden
+            result prefixes, retrieval mode, and comparison mode. The goal is to
+            catch regressions in search and token usage deterministically.
+          </p>
+          <p data-lang-content="pt">
+            Fixtures definem notas do vault, queries, rótulos esperados de relevância,
+            prefixos golden, modo de recuperação e modo comparativo. O objetivo é
+            capturar regressões em busca e uso de tokens de forma determinística.
+          </p>
+        </div>
+
+        <div class="benchmark-panel">
+          <div>
+            <p class="panel-label" id="benchmark-suite">Deterministic search benchmark</p>
+            <h3 id="benchmark-current-label">Cairn lexical retrieval suite</h3>
+            <p class="panel-note" id="benchmark-note">
+              Runs locally without model calls. Measures ranking quality, token budgets,
+              and passage-vs-document context reduction.
+            </p>
+          </div>
+          <code id="benchmark-command">python bench/run_eval.py --quiet --compare-golden bench/golden.json</code>
+          <p class="updated" id="benchmark-updated">Updated 2026-06-18</p>
+        </div>
+
+        <div class="metric-grid" id="benchmark-cards" aria-live="polite"></div>
+        <div class="metric-explainer-grid benchmark-glossary">
+          <article>
+            <strong>Recall@3</strong>
+            <p data-lang-content="en">Fraction of benchmark topics where at least one expected note appears in the first three results.</p>
+            <p data-lang-content="pt">Fração dos tópicos em que pelo menos uma nota esperada aparece nos três primeiros resultados.</p>
+          </article>
+          <article>
+            <strong>MRR@3</strong>
+            <p data-lang-content="en">Rewards the first relevant result appearing earlier in the list.</p>
+            <p data-lang-content="pt">Recompensa quando o primeiro resultado relevante aparece mais cedo na lista.</p>
+          </article>
+          <article>
+            <strong>nDCG@3</strong>
+            <p data-lang-content="en">Checks whether highly relevant results are ordered above weaker matches.</p>
+            <p data-lang-content="pt">Verifica se resultados muito relevantes ficam acima de matches mais fracos.</p>
+          </article>
+          <article>
+            <strong>context_reduction</strong>
+            <p data-lang-content="en">Measures how much less text passage retrieval returns compared with full documents.</p>
+            <p data-lang-content="pt">Mede quanto texto a recuperação por passagens economiza contra documentos completos.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <strong>Cairn</strong>
+        <p data-lang-content="en">Local Markdown knowledge for search, retrieval, and writeback.</p>
+        <p data-lang-content="pt">Conhecimento local em Markdown para busca, recuperação e escrita.</p>
+      </div>
+      <div class="footer-links">
+        <a href="index.html">Overview</a>
+        <a href="https://github.com/sinkz/cairn">GitHub</a>
+        <a href="https://github.com/sinkz/cairn/blob/main/ROADMAP.md">Roadmap</a>
+      </div>
+    </footer>
+
+    <script src="assets/site.js"></script>
+  </body>
+</html>
