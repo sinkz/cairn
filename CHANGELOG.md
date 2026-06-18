@@ -4,6 +4,16 @@ All notable ApolloKairn changes are tracked here.
 
 ## Unreleased
 
+## 0.1.3 - 2026-06-18
+
+### Changed
+
+- Glossary aliases are now eligible during the first retrieval pass instead of
+  only as an empty-result fallback.
+- Search, passage retrieval, and RRF ranking now use precision-preserving
+  grouped glossary expansion, so approved aliases such as `k8s` can match
+  `kubernetes` without turning the whole query into a broad OR search.
+
 ## 0.1.2 - 2026-06-18
 
 ### Changed

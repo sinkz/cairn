@@ -11,7 +11,7 @@ from cairn.frontmatter import FrontmatterError, parse_document
 from cairn.passages import split_passages
 from cairn.ranking import fts_query, fts_query_variants, rrf_merge
 from cairn.validate import RESERVED_NAMES
-from cairn.vocabulary import expanded_fts_or_query
+from cairn.vocabulary import expanded_fts_and_query, expanded_fts_or_query
 
 
 class CairnIndexError(RuntimeError):
@@ -303,6 +303,11 @@ def _search_doc_rows_with_fallback(
     query_text: str,
     candidate_limit: int,
 ) -> list[sqlite3.Row]:
+    expanded = expanded_fts_and_query(root, query)
+    if expanded and expanded != query_text:
+        rows = _search_doc_rows(con, expanded, max(candidate_limit, 100))
+        if rows:
+            return rows
     rows = _search_doc_rows(con, query_text, candidate_limit)
     if rows:
         return rows
@@ -339,6 +344,11 @@ def _search_passage_rows_with_fallback(
     query_text: str,
     candidate_limit: int,
 ) -> list[sqlite3.Row]:
+    expanded = expanded_fts_and_query(root, query)
+    if expanded and expanded != query_text:
+        rows = _search_passage_rows(con, expanded, max(candidate_limit, 100))
+        if rows:
+            return rows
     rows = _search_passage_rows(con, query_text, candidate_limit)
     if rows:
         return rows
@@ -348,8 +358,16 @@ def _search_passage_rows_with_fallback(
     return _search_passage_rows(con, expanded, max(candidate_limit, 100))
 
 
-def _rrf_doc_rows(con: sqlite3.Connection, query: str, candidate_limit: int) -> list[sqlite3.Row]:
+def _fts_query_variants_with_glossary(root: Path, query: str) -> list[str]:
     variants = fts_query_variants(query)
+    expanded = expanded_fts_and_query(root, query)
+    if expanded and expanded not in variants:
+        variants.insert(1, expanded)
+    return variants
+
+
+def _rrf_doc_rows(con: sqlite3.Connection, root: Path, query: str, candidate_limit: int) -> list[sqlite3.Row]:
+    variants = _fts_query_variants_with_glossary(root, query)
     runs: list[list[str]] = []
     fused: dict[str, tuple[sqlite3.Row, int, float]] = {}
     for variant in variants:
@@ -369,8 +387,8 @@ def _passage_key(row: sqlite3.Row) -> str:
     return f"{row[0]}:{row[6]}:{row[7]}"
 
 
-def _rrf_passage_rows(con: sqlite3.Connection, query: str, candidate_limit: int) -> list[sqlite3.Row]:
-    variants = fts_query_variants(query)
+def _rrf_passage_rows(con: sqlite3.Connection, root: Path, query: str, candidate_limit: int) -> list[sqlite3.Row]:
+    variants = _fts_query_variants_with_glossary(root, query)
     runs: list[list[str]] = []
     fused: dict[str, tuple[sqlite3.Row, int, float]] = {}
     for variant in variants:
@@ -418,7 +436,7 @@ def search(
                 else limit
             )
             rows = (
-                _rrf_doc_rows(con, query, candidate_limit)
+                _rrf_doc_rows(con, root, query, candidate_limit)
                 if ranker == "rrf"
                 else _search_doc_rows_with_fallback(con, root, query, query_text, candidate_limit)
             )
@@ -479,7 +497,7 @@ def search_passages(
                 else limit
             )
             rows = (
-                _rrf_passage_rows(con, query, candidate_limit)
+                _rrf_passage_rows(con, root, query, candidate_limit)
                 if ranker == "rrf"
                 else _search_passage_rows_with_fallback(con, root, query, query_text, candidate_limit)
             )

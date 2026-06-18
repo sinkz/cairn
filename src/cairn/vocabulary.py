@@ -199,15 +199,7 @@ def expanded_query_tokens(root: Path, query: str) -> list[str]:
     tokens = list(query_tokens(query))
     if not tokens:
         return []
-    groups: list[set[str]] = []
-    for term in load_terms(root):
-        if term.status.casefold() != "approved":
-            continue
-        group: set[str] = set(query_tokens(term.title))
-        for alias in term.aliases:
-            group.update(query_tokens(alias))
-        if group:
-            groups.append(group)
+    groups = _approved_token_groups(root)
 
     out: list[str] = []
     seen: set[str] = set()
@@ -229,8 +221,63 @@ def expanded_query_tokens(root: Path, query: str) -> list[str]:
     return out if changed else []
 
 
+def expanded_query_groups(root: Path, query: str) -> list[list[str]]:
+    tokens = list(query_tokens(query))
+    if not tokens:
+        return []
+    groups = _approved_token_groups(root)
+    out: list[list[str]] = []
+    seen_groups: set[tuple[str, ...]] = set()
+    changed = False
+    for token in tokens:
+        token_norm = _normalize(token)
+        candidates = {token}
+        for group in groups:
+            if token_norm in {_normalize(item) for item in group}:
+                candidates.update(group)
+        if len(candidates) > 1:
+            changed = True
+        normalized_group = tuple(sorted({_normalize(candidate) for candidate in candidates}))
+        if normalized_group in seen_groups:
+            continue
+        seen_groups.add(normalized_group)
+        ordered: list[str] = []
+        seen_candidates: set[str] = set()
+        for candidate in sorted(candidates, key=lambda item: (item != token, item.casefold())):
+            key = _normalize(candidate)
+            if key in seen_candidates:
+                continue
+            seen_candidates.add(key)
+            ordered.append(candidate)
+        out.append(ordered)
+    return out if changed else []
+
+
 def expanded_fts_or_query(root: Path, query: str) -> str:
     return " OR ".join(f'"{token}"' for token in expanded_query_tokens(root, query))
+
+
+def expanded_fts_and_query(root: Path, query: str) -> str:
+    parts: list[str] = []
+    for group in expanded_query_groups(root, query):
+        if len(group) == 1:
+            parts.append(f'"{group[0]}"')
+        else:
+            parts.append("(" + " OR ".join(f'"{token}"' for token in group) + ")")
+    return " AND ".join(parts)
+
+
+def _approved_token_groups(root: Path) -> list[set[str]]:
+    groups: list[set[str]] = []
+    for term in load_terms(root):
+        if term.status.casefold() != "approved":
+            continue
+        group: set[str] = set(query_tokens(term.title))
+        for alias in term.aliases:
+            group.update(query_tokens(alias))
+        if group:
+            groups.append(group)
+    return groups
 
 
 def _concept_files(root: Path) -> list[Path]:

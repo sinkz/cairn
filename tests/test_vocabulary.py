@@ -48,6 +48,22 @@ def write_k8s_note(root: Path) -> None:
     )
 
 
+def write_literal_kubernetes_note(root: Path) -> None:
+    (root / "knowledge" / "kubernetes-reference.md").write_text(
+        "---\n"
+        "type: Knowledge\n"
+        "title: Kubernetes deploy rollback reference\n"
+        "description: Background reference that uses the long Kubernetes name.\n"
+        "tags: [deploy, reference]\n"
+        "timestamp: 2026-06-18T00:00:00Z\n"
+        "systems: [platform]\n"
+        "---\n\n"
+        "# Context\n\n"
+        "Kubernetes deploy rollback terminology and general background.\n",
+        encoding="utf-8",
+    )
+
+
 def write_glossary(root: Path) -> None:
     (root / "glossary.md").write_text(
         "# Glossary\n\n"
@@ -74,6 +90,36 @@ class VocabularyTests(unittest.TestCase):
             results = search(root, "kubernetes rollback emergencial deploy", limit=3)
 
             self.assertEqual([result.path for result in results], ["knowledge/rollback-k8s.md"])
+
+    def test_search_uses_approved_glossary_alias_when_exact_query_already_matches(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_glossary(root)
+            write_k8s_note(root)
+            write_literal_kubernetes_note(root)
+            rebuild_index(root)
+
+            results = search(root, "kubernetes rollback deploy", limit=3)
+
+            paths = [result.path for result in results]
+            self.assertIn("knowledge/kubernetes-reference.md", paths)
+            self.assertIn("knowledge/rollback-k8s.md", paths)
+
+    def test_search_rrf_uses_approved_glossary_alias_when_exact_query_already_matches(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_glossary(root)
+            write_k8s_note(root)
+            write_literal_kubernetes_note(root)
+            rebuild_index(root)
+
+            results = search(root, "kubernetes", limit=3, ranker="rrf")
+
+            paths = [result.path for result in results]
+            self.assertIn("knowledge/kubernetes-reference.md", paths)
+            self.assertIn("knowledge/rollback-k8s.md", paths)
 
     def test_search_explain_reports_approved_glossary_alias_matches(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -117,6 +163,50 @@ class VocabularyTests(unittest.TestCase):
             self.assertEqual(packet.source_count, 1)
             self.assertEqual(packet.sources[0].path, "knowledge/rollback-k8s.md")
             self.assertIn("Rollback rapido deploy K8s", packet.context)
+
+    def test_retrieve_passages_uses_approved_glossary_alias_when_exact_query_already_matches(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_glossary(root)
+            write_k8s_note(root)
+            write_literal_kubernetes_note(root)
+            rebuild_index(root)
+
+            packet = retrieve_packet(
+                root,
+                "kubernetes rollback deploy",
+                mode="passages",
+                ranker="bm25",
+                limit=3,
+                budget_tokens=500,
+            )
+
+            paths = [source.path for source in packet.sources]
+            self.assertIn("knowledge/kubernetes-reference.md", paths)
+            self.assertIn("knowledge/rollback-k8s.md", paths)
+
+    def test_retrieve_passages_rrf_uses_approved_glossary_alias_when_exact_query_already_matches(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_glossary(root)
+            write_k8s_note(root)
+            write_literal_kubernetes_note(root)
+            rebuild_index(root)
+
+            packet = retrieve_packet(
+                root,
+                "kubernetes",
+                mode="passages",
+                ranker="rrf",
+                limit=3,
+                budget_tokens=500,
+            )
+
+            paths = [source.path for source in packet.sources]
+            self.assertIn("knowledge/kubernetes-reference.md", paths)
+            self.assertIn("knowledge/rollback-k8s.md", paths)
 
     def test_vocab_add_term_and_validate_manage_glossary(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
