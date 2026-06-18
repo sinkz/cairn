@@ -113,6 +113,7 @@ def _topic_docs(root: Path, topic: Topic, limit: int, mode: str, ranker: str) ->
             type_filter=topic.type_filter,
             tag_filters=topic.tag_filters,
             system_filters=topic.system_filters,
+            ranker=ranker,
         )
         return _unique_ordered(result.path for result in passage_results)
     results = search(

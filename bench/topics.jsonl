@@ -16,3 +16,4 @@
 {"id":"q16","query":"lower checkout worker concurrency inspect slow transactions restart affected worker group connection pressure drops","mode":"passages","compare_mode":"documents","budget":250}
 {"id":"q17","query":"deploy token rotation kubernetes secret","ranker":"rrf","compare_ranker":"bm25","budget":600}
 {"id":"q18","query":"reconnecting","ranker":"rrf","compare_ranker":"bm25","budget":600}
+{"id":"q19","query":"reconnecting","mode":"passages","ranker":"rrf","compare_ranker":"bm25","limit":1,"budget":250}

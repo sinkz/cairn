@@ -173,11 +173,11 @@ splitting only if heading-level passages are too coarse.
 
 Run multiple cheap lexical searches and merge them with Reciprocal Rank Fusion:
 
-- raw query;
-- quoted terms;
-- metadata-weighted query;
-- alias/signal-expanded query;
-- optional prefix query for technical identifiers.
+- quoted strict query;
+- quoted OR query;
+- safe prefix/inflection query for longer alphabetic terms;
+- metadata, aliases, systems, and signals through the existing FTS content
+  fields.
 
 Success criteria:
 
@@ -185,12 +185,12 @@ Success criteria:
 - improved MRR on synonym and alias-heavy fixtures;
 - minimal latency increase on local vaults.
 
-Status: initial opt-in document RRF is implemented for `cairn search --ranker rrf`
-and `cairn retrieve --ranker rrf`. It fuses the strict query with a broader OR
-lexical query, leaves the default `bm25` behavior unchanged, and is measured
-against `compare_ranker: bm25` in the deterministic benchmark. Next work should
-test safer prefix/inflection variants and passage-mode RRF before considering
-any default ranking change.
+Status: opt-in RRF is implemented for document search/retrieval and passage
+retrieval. It fuses strict, broader OR, and conservative prefix/inflection
+lexical runs, leaves the default `bm25` behavior unchanged, and is measured
+against `compare_ranker: bm25` in the deterministic benchmark. Document and
+passage fixtures cover noisy extra-term queries and inflection-only queries
+where the strict ranker returns no result.
 
 ### Duplicate Fingerprints
 

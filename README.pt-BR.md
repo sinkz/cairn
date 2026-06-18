@@ -24,7 +24,7 @@ pesquisável:
 - busca rápida com SQLite FTS;
 - filtros por metadados e recuperação com orçamento de tokens;
 - leitura parcial para agentes abrirem menos contexto;
-- ranking RRF experimental para buscas ruidosas;
+- ranking RRF experimental para buscas ruidosas ou com variação lexical;
 - checagem de duplicatas por fingerprint antes de criar novas notas.
 
 ## Começo Rápido
@@ -77,7 +77,7 @@ Cairn atualmente inclui:
 - recuperação com orçamento de tokens;
 - redação de segredos comuns durante recuperação;
 - recuperação baseada em passagens;
-- ranker RRF experimental;
+- ranker RRF experimental para recuperação de documentos e passagens;
 - leitura parcial de documentos;
 - criação de notas e atualização por append;
 - checagem de notas similares por fingerprint;

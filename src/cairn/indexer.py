@@ -295,6 +295,26 @@ def _search_doc_rows(con: sqlite3.Connection, fts_query: str, candidate_limit: i
     ).fetchall()
 
 
+def _search_passage_rows(con: sqlite3.Connection, fts_query: str, candidate_limit: int) -> list[sqlite3.Row]:
+    return con.execute(
+        "SELECT path, type, title, tags, systems, heading, start_line, end_line, "
+        "bm25(passages, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) AS score, "
+        "snippet(passages, 8, ?, ?, '...', 12), "
+        "snippet(passages, 9, ?, ?, '...', 12), "
+        "text "
+        "FROM passages WHERE passages MATCH ? ORDER BY score LIMIT ?",
+        (
+            *_PASSAGE_BM25_WEIGHTS,
+            _HIGHLIGHT_START,
+            _HIGHLIGHT_END,
+            _HIGHLIGHT_START,
+            _HIGHLIGHT_END,
+            fts_query,
+            candidate_limit,
+        ),
+    ).fetchall()
+
+
 def _rrf_doc_rows(con: sqlite3.Connection, query: str, candidate_limit: int) -> list[sqlite3.Row]:
     variants = fts_query_variants(query)
     runs: list[list[str]] = []
@@ -310,6 +330,27 @@ def _rrf_doc_rows(con: sqlite3.Connection, query: str, candidate_limit: int) -> 
                 fused[path] = (row, rank, score)
         runs.append(run)
     return [fused[path][0] for path in rrf_merge(runs, k=_RRF_K) if path in fused]
+
+
+def _passage_key(row: sqlite3.Row) -> str:
+    return f"{row[0]}:{row[6]}:{row[7]}"
+
+
+def _rrf_passage_rows(con: sqlite3.Connection, query: str, candidate_limit: int) -> list[sqlite3.Row]:
+    variants = fts_query_variants(query)
+    runs: list[list[str]] = []
+    fused: dict[str, tuple[sqlite3.Row, int, float]] = {}
+    for variant in variants:
+        run: list[str] = []
+        for rank, row in enumerate(_search_passage_rows(con, variant, candidate_limit), start=1):
+            key = _passage_key(row)
+            score = float(row[8])
+            run.append(key)
+            previous = fused.get(key)
+            if previous is None or rank < previous[1] or score < previous[2]:
+                fused[key] = (row, rank, score)
+        runs.append(run)
+    return [fused[key][0] for key in rrf_merge(runs, k=_RRF_K) if key in fused]
 
 
 def search(
@@ -380,10 +421,13 @@ def search_passages(
     type_filter: str | None = None,
     tag_filters: Sequence[str] = (),
     system_filters: Sequence[str] = (),
+    ranker: str = "bm25",
 ) -> list[PassageSearchResult]:
     root = Path(root)
     if limit <= 0:
         raise ValueError("limit must be positive")
+    if ranker not in {"bm25", "rrf"}:
+        raise ValueError("ranker must be 'bm25' or 'rrf'")
     query_text = fts_query(query)
     if not query_text:
         return []
@@ -396,24 +440,16 @@ def search_passages(
         raise CairnIndexError(_INDEX_ERROR) from exc
     try:
         try:
-            candidate_limit = max(limit * 20, 100) if type_filter or tag_filters or system_filters else limit
-            rows = con.execute(
-                "SELECT path, type, title, tags, systems, heading, start_line, end_line, "
-                "bm25(passages, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) AS score, "
-                "snippet(passages, 8, ?, ?, '...', 12), "
-                "snippet(passages, 9, ?, ?, '...', 12), "
-                "text "
-                "FROM passages WHERE passages MATCH ? ORDER BY score LIMIT ?",
-                (
-                    *_PASSAGE_BM25_WEIGHTS,
-                    _HIGHLIGHT_START,
-                    _HIGHLIGHT_END,
-                    _HIGHLIGHT_START,
-                    _HIGHLIGHT_END,
-                    query_text,
-                    candidate_limit,
-                ),
-            ).fetchall()
+            candidate_limit = (
+                max(limit * 20, 100)
+                if ranker == "rrf" or type_filter or tag_filters or system_filters
+                else limit
+            )
+            rows = (
+                _rrf_passage_rows(con, query, candidate_limit)
+                if ranker == "rrf"
+                else _search_passage_rows(con, query_text, candidate_limit)
+            )
         except sqlite3.Error as exc:
             raise CairnIndexError(_INDEX_ERROR) from exc
     finally:

@@ -288,6 +288,36 @@ class IndexerTests(unittest.TestCase):
             self.assertGreater(results[0].end_line, results[0].start_line)
             self.assertIn("token", results[0].snippet.casefold())
 
+    def test_rrf_search_passages_recovers_safe_inflection_variant(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "cache-failover.md",
+                (
+                    "type: Runbook",
+                    "title: Cache failover workers",
+                    "description: Restore workers after cache failover.",
+                    "tags: [cache, bug]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                    "signals: [cache failover]",
+                ),
+                "# Context\n\nWorkers stay disconnected after failover.\n\n"
+                "# Resolution\n\nRun the reconnection workflow and restart affected workers.\n",
+            )
+            rebuild_index(root)
+
+            from cairn.indexer import search_passages
+
+            default_results = search_passages(root, "reconnecting", limit=3)
+            fused_results = search_passages(root, "reconnecting", limit=3, ranker="rrf")
+
+            self.assertEqual(default_results, [])
+            self.assertEqual(fused_results[0].path, "knowledge/cache-failover.md")
+            self.assertEqual(fused_results[0].heading, "Resolution")
+            self.assertIn("reconnection", fused_results[0].text)
+
     def test_config_excluded_folders_are_not_indexed(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

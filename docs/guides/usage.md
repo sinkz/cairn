@@ -259,6 +259,7 @@ Builds a context packet for an LLM under an approximate token budget.
 cairn retrieve "deploy 403" --path ~/brain --limit 3 --budget 800
 cairn retrieve "deploy 403" --path ~/brain --mode passages --budget 500
 cairn retrieve "deploy token rotation kubernetes secret" --path ~/brain --ranker rrf --budget 800
+cairn retrieve "reconnecting cache workers" --path ~/brain --mode passages --ranker rrf --budget 500
 ```
 
 Use this when an agent needs useful context immediately without manually running
@@ -270,9 +271,9 @@ Use `--mode passages` when the agent needs the smallest useful sections instead
 of full matching documents. Passage output includes the source path, heading,
 and line range so the agent can reopen the exact context if needed.
 
-Use `--ranker rrf` only with document retrieval. It is useful when the strict
-default search returns nothing because the query mixes correct signals with
-extra terms.
+Use `--ranker rrf` with documents or passages when the strict default search
+returns nothing because the query mixes correct signals with extra terms or
+safe lexical variants. RRF stays opt-in; the default `bm25` path remains strict.
 
 Filters work the same way as `search`:
 

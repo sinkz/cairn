@@ -16,7 +16,7 @@ Initial public release.
 - Budgeted retrieval for low-context agent workflows.
 - Retrieval redaction for common secret-like values.
 - Passage-based retrieval for section-level context packets.
-- Experimental RRF ranker for noisy document queries.
+- Experimental RRF ranker for noisy or lexically varied document and passage queries.
 - Partial document reads by line range, section, and snippet.
 - Similar-note checks before creating duplicates.
 - Lightweight fingerprint fallback for near-duplicate checks with extra terms.

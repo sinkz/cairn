@@ -160,6 +160,44 @@ class RetrieverTests(unittest.TestCase):
             self.assertIn("knowledge/deploy-secret.md", result.stdout)
             self.assertIn("Update the CI secret", result.stdout)
 
+    def test_cli_retrieve_passages_accepts_rrf_ranker(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "cache-failover.md",
+                (
+                    "type: Runbook",
+                    "title: Cache failover workers",
+                    "description: Restore workers after cache failover.",
+                    "tags: [cache, bug]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                    "signals: [cache failover]",
+                ),
+                "# Context\n\nWorkers stay disconnected after failover.\n\n"
+                "# Resolution\n\nRun the reconnection workflow and restart affected workers.\n",
+            )
+            run_cairn(root, "index", "--rebuild")
+
+            result = run_cairn(
+                root,
+                "retrieve",
+                "reconnecting",
+                "--mode",
+                "passages",
+                "--ranker",
+                "rrf",
+                "--budget",
+                "250",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("knowledge/cache-failover.md", result.stdout)
+            self.assertIn("heading: Resolution", result.stdout)
+            self.assertIn("lines:", result.stdout)
+            self.assertIn("reconnection workflow", result.stdout)
+
     def test_cli_retrieve_redacts_secret_like_values(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
