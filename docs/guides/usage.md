@@ -195,8 +195,31 @@ cairn add --path ~/brain \
 and the knowledge is likely to be useful again.
 
 The CLI body argument is best for short text. For multi-section notes, create
-the note first, edit the Markdown file directly, then run `cairn validate` and
-`cairn index`.
+the body in a Markdown file and pass it with `--body-file`:
+
+```bash
+cairn capture --path ~/brain \
+  --title "Webhook 400 after SDK upgrade" \
+  --description "Fixes provider webhook requests rejected after a schema change." \
+  --type Runbook \
+  --tag bug \
+  --system support-api \
+  --body-file ./webhook-400-body.md
+```
+
+Use `--body-stdin` when another tool or agent generates the body:
+
+```bash
+cat ./webhook-400-body.md | cairn capture --path ~/brain \
+  --title "Webhook 400 after SDK upgrade" \
+  --description "Fixes provider webhook requests rejected after a schema change." \
+  --type Runbook \
+  --tag bug \
+  --body-stdin
+```
+
+If the body starts with a Markdown heading, Cairn preserves it as-is. If it is
+plain text, Cairn wraps it in a `# Context` section.
 
 ### `cairn update`
 
@@ -204,10 +227,14 @@ Appends text to an existing note if the same text is not already present.
 
 ```bash
 cairn update knowledge/deploy-403.md --path ~/brain --append "Add the new verification step."
+cairn update knowledge/deploy-403.md --path ~/brain --append-file ./deploy-403-update.md
+cat ./deploy-403-update.md | cairn update knowledge/deploy-403.md --path ~/brain --append-stdin
 ```
 
 Use it when `cairn similar` finds an existing note that should be expanded
-instead of duplicated.
+instead of duplicated. The document argument can be a vault-relative path or an
+absolute path inside the vault. Updates are idempotent and refresh the note
+timestamp only when new text is actually appended.
 
 ### `cairn index`
 
@@ -270,7 +297,9 @@ Builds a context packet for an LLM under an approximate token budget.
 cairn retrieve "deploy 403" --path ~/brain --limit 3 --budget 800
 cairn retrieve "deploy 403" --path ~/brain --mode passages --budget 500
 cairn retrieve "deploy token rotation kubernetes secret" --path ~/brain --ranker rrf --budget 800
+cairn retrieve "deploy token rotation kubernetes secret" --path ~/brain --ranker auto --budget 800
 cairn retrieve "reconnecting cache workers" --path ~/brain --mode passages --ranker rrf --budget 500
+cairn retrieve "reconnecting cache workers" --path ~/brain --mode passages --ranker auto --budget 500
 ```
 
 Use this when an agent needs useful context immediately without manually running
@@ -282,9 +311,9 @@ Use `--mode passages` when the agent needs the smallest useful sections instead
 of full matching documents. Passage output includes the source path, heading,
 and line range so the agent can reopen the exact context if needed.
 
-Use `--ranker rrf` with documents or passages when the strict default search
-returns nothing because the query mixes correct signals with extra terms or
-safe lexical variants. RRF stays opt-in; the default `bm25` path remains strict.
+Use `--ranker auto` when you want a safe fallback: Cairn tries strict `bm25`
+first and only spends the extra RRF search work when no context is returned.
+Use `--ranker rrf` when you explicitly want fused lexical ranking every time.
 
 Filters work the same way as `search`:
 
@@ -329,6 +358,11 @@ JSON output is available for agents:
 ```bash
 cairn similar "deploy forbidden token" --path ~/brain --json
 ```
+
+Results include a `kind` field. `duplicate_candidate` means the match is strong
+enough to prefer updating the existing note. `related` means the note is useful
+context, but the agent should inspect it before deciding whether to update or
+create a new note.
 
 ### `cairn stats`
 

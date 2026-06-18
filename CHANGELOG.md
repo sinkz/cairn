@@ -2,6 +2,21 @@
 
 All notable Cairn changes are tracked here.
 
+## Unreleased
+
+### Added
+
+- `cairn add` and `cairn capture` can read note bodies from `--body-file` or `--body-stdin`.
+- `cairn update` can append from `--append-file` or `--append-stdin`.
+- `cairn retrieve --ranker auto` tries BM25 first and falls back to RRF only when no context is returned.
+- `cairn similar` results include `kind` labels: `duplicate_candidate` or `related`.
+
+### Changed
+
+- Multi-section note bodies that already start with a Markdown heading are preserved without adding a duplicate `# Context` heading.
+- `cairn update` accepts absolute document paths inside the vault, reports the normalized vault-relative path, and refreshes the note timestamp only when new text is appended.
+- Internal research, plans, and reports are excluded from the public documentation tree.
+
 ## 0.1.0 - 2026-06-17
 
 Initial public release.
@@ -26,4 +41,4 @@ Initial public release.
 - Export blocking when common secret-like values are detected.
 - CI, contribution guide, roadmap, and example vault.
 - Categorized deterministic search benchmark with golden ranking checks and token metrics.
-- Expanded onboarding documentation, example walkthroughs, and a stress-vault report for agent write/search behavior.
+- Expanded onboarding documentation and example walkthroughs.

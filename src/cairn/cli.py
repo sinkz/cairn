@@ -12,6 +12,14 @@ def _add_vault_path(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--path", default=".", help="Vault path. Defaults to current directory.")
 
 
+def _read_text_input(value: str | None, file_path: str | None, use_stdin: bool) -> str:
+    if file_path:
+        return Path(file_path).read_text(encoding="utf-8")
+    if use_stdin:
+        return sys.stdin.read()
+    return value or ""
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="cairn")
     sub = parser.add_subparsers(dest="command")
@@ -31,7 +39,10 @@ def build_parser() -> argparse.ArgumentParser:
         cmd.add_argument("--type", default="Note", dest="note_type")
         cmd.add_argument("--tag", action="append", default=[])
         cmd.add_argument("--folder", default="knowledge")
-        cmd.add_argument("--body", default="")
+        body = cmd.add_mutually_exclusive_group()
+        body.add_argument("--body", help="Inline Markdown body. Best for short text.")
+        body.add_argument("--body-file", help="Read the Markdown body from a UTF-8 file.")
+        body.add_argument("--body-stdin", action="store_true", help="Read the Markdown body from stdin.")
         cmd.add_argument("--alias", action="append", default=[])
         cmd.add_argument("--system", action="append", default=[])
         cmd.add_argument("--signal", action="append", default=[])
@@ -44,7 +55,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     update_cmd = sub.add_parser("update", help="Update an existing Cairn note.")
     update_cmd.add_argument("document")
-    update_cmd.add_argument("--append", required=True, help="Text to append if it is not already present.")
+    append = update_cmd.add_mutually_exclusive_group(required=True)
+    append.add_argument("--append", help="Inline text to append if it is not already present.")
+    append.add_argument("--append-file", help="Read text to append from a UTF-8 file.")
+    append.add_argument("--append-stdin", action="store_true", help="Read text to append from stdin.")
     _add_vault_path(update_cmd)
 
     export_cmd = sub.add_parser("export", help="Export a vault to a zip archive.")
@@ -74,7 +88,7 @@ def build_parser() -> argparse.ArgumentParser:
     retrieve_cmd.add_argument("--limit", type=int, default=3)
     retrieve_cmd.add_argument("--budget", type=int, default=1000, help="Approximate token budget.")
     retrieve_cmd.add_argument("--mode", choices=["documents", "passages"], default="documents")
-    retrieve_cmd.add_argument("--ranker", choices=["bm25", "rrf"], default="bm25")
+    retrieve_cmd.add_argument("--ranker", choices=["bm25", "rrf", "auto"], default="bm25")
     retrieve_cmd.add_argument("--type", dest="type_filter", help="Filter results by document type.")
     retrieve_cmd.add_argument("--tag", action="append", default=[], help="Filter results by tag. Can be repeated.")
     retrieve_cmd.add_argument("--system", action="append", default=[], help="Filter results by system. Can be repeated.")
@@ -131,6 +145,7 @@ def main(argv: list[str] | None = None) -> int:
         from cairn.notes import create_note
 
         try:
+            body = _read_text_input(args.body, args.body_file, args.body_stdin)
             result = create_note(
                 Path(args.path),
                 title=args.title,
@@ -138,13 +153,13 @@ def main(argv: list[str] | None = None) -> int:
                 typ=args.note_type,
                 tags=args.tag,
                 folder=args.folder,
-                body=args.body,
+                body=body,
                 aliases=args.alias,
                 systems=args.system,
                 signals=args.signal,
                 timestamp=args.timestamp,
             )
-        except (FileExistsError, ValueError) as exc:
+        except (FileExistsError, OSError, ValueError) as exc:
             print(f"ERROR {exc}", file=sys.stderr)
             return 1
         print(f"created {result.path}")
@@ -153,8 +168,9 @@ def main(argv: list[str] | None = None) -> int:
         from cairn.notes import append_to_note
 
         try:
-            result = append_to_note(Path(args.path), args.document, args.append)
-        except (FileNotFoundError, ValueError) as exc:
+            append_text = _read_text_input(args.append, args.append_file, args.append_stdin)
+            result = append_to_note(Path(args.path), args.document, append_text)
+        except (FileNotFoundError, OSError, ValueError) as exc:
             print(f"ERROR {exc}", file=sys.stderr)
             return 1
         print(("updated" if result.changed else "unchanged") + f" {result.path}")

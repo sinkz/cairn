@@ -160,6 +160,52 @@ class RetrieverTests(unittest.TestCase):
             self.assertIn("knowledge/deploy-secret.md", result.stdout)
             self.assertIn("Update the CI secret", result.stdout)
 
+    def test_cli_retrieve_auto_ranker_falls_back_to_rrf_documents(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "deploy-secret.md",
+                (
+                    "type: Runbook",
+                    "title: Deploy token rotation",
+                    "description: Update the CI secret after token rotation.",
+                    "tags: [deploy, bug]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                    "signals: [deploy token rotation, ci secret]",
+                ),
+                "# Resolution\n\nUpdate the CI secret and rerun the failed deployment job.\n",
+            )
+            write_concept(
+                root,
+                "kubernetes-noise.md",
+                (
+                    "type: Note",
+                    "title: Kubernetes glossary",
+                    "description: Background terms for cluster operations.",
+                    "tags: [reference]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                    "signals: [kubernetes]",
+                ),
+                "# Context\n\nkubernetes kubernetes kubernetes background.\n",
+            )
+            run_cairn(root, "index", "--rebuild")
+
+            result = run_cairn(
+                root,
+                "retrieve",
+                "deploy token rotation kubernetes secret",
+                "--ranker",
+                "auto",
+                "--budget",
+                "400",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("knowledge/deploy-secret.md", result.stdout)
+            self.assertIn("Update the CI secret", result.stdout)
+
     def test_cli_retrieve_passages_accepts_rrf_ranker(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -196,6 +242,43 @@ class RetrieverTests(unittest.TestCase):
             self.assertIn("knowledge/cache-failover.md", result.stdout)
             self.assertIn("heading: Resolution", result.stdout)
             self.assertIn("lines:", result.stdout)
+            self.assertIn("reconnection workflow", result.stdout)
+
+    def test_cli_retrieve_auto_ranker_falls_back_to_rrf_passages(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "cache-failover.md",
+                (
+                    "type: Runbook",
+                    "title: Cache failover workers",
+                    "description: Restore workers after cache failover.",
+                    "tags: [cache, bug]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                    "signals: [cache failover]",
+                ),
+                "# Context\n\nWorkers stay disconnected after failover.\n\n"
+                "# Resolution\n\nRun the reconnection workflow and restart affected workers.\n",
+            )
+            run_cairn(root, "index", "--rebuild")
+
+            result = run_cairn(
+                root,
+                "retrieve",
+                "reconnecting",
+                "--mode",
+                "passages",
+                "--ranker",
+                "auto",
+                "--budget",
+                "250",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("knowledge/cache-failover.md", result.stdout)
+            self.assertIn("heading: Resolution", result.stdout)
             self.assertIn("reconnection workflow", result.stdout)
 
     def test_cli_retrieve_redacts_secret_like_values(self) -> None:

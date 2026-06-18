@@ -25,6 +25,15 @@ def _frontmatter_list(items: Sequence[str]) -> str:
     return "[" + ", ".join(items) + "]"
 
 
+def _render_body(body: str) -> str:
+    stripped = body.strip()
+    if not stripped:
+        return "# Context\n\n"
+    if stripped.startswith("#"):
+        return f"{stripped}\n"
+    return f"# Context\n\n{stripped}\n"
+
+
 def create_note(
     root: Path,
     title: str,
@@ -62,18 +71,52 @@ def create_note(
         f"systems: {_frontmatter_list(systems)}\n"
         f"signals: {_frontmatter_list(signals)}\n"
         "---\n\n"
-        "# Context\n\n"
-        f"{body.strip()}\n"
+        f"{_render_body(body)}"
     )
     path.write_text(content, encoding="utf-8")
     return NoteWriteResult(path=rel.as_posix(), changed=True)
 
 
-def append_to_note(root: Path, rel_path: str, text: str) -> NoteWriteResult:
-    root = Path(root)
-    path = (root / rel_path).resolve()
-    if root.resolve() not in path.parents and path != root.resolve():
+def _resolve_note_path(root: Path, rel_path: str) -> tuple[Path, str]:
+    root_resolved = Path(root).resolve()
+    candidate = Path(rel_path)
+    path = candidate.resolve() if candidate.is_absolute() else (root_resolved / candidate).resolve()
+    if root_resolved not in path.parents and path != root_resolved:
         raise ValueError("path must stay inside vault")
+    return path, path.relative_to(root_resolved).as_posix()
+
+
+def _replace_timestamp(text: str, timestamp: str) -> str:
+    lines = text.splitlines(keepends=True)
+    if not lines or lines[0].strip() != "---":
+        return text
+
+    end_index: int | None = None
+    for index in range(1, len(lines)):
+        if lines[index].strip() == "---":
+            end_index = index
+            break
+    if end_index is None:
+        return text
+
+    newline = "\n"
+    for line in lines:
+        if line.endswith("\r\n"):
+            newline = "\r\n"
+            break
+
+    for index in range(1, end_index):
+        if lines[index].startswith("timestamp:"):
+            ending = "\r\n" if lines[index].endswith("\r\n") else "\n" if lines[index].endswith("\n") else ""
+            lines[index] = f"timestamp: {timestamp}{ending}"
+            return "".join(lines)
+
+    lines.insert(end_index, f"timestamp: {timestamp}{newline}")
+    return "".join(lines)
+
+
+def append_to_note(root: Path, rel_path: str, text: str) -> NoteWriteResult:
+    path, display_path = _resolve_note_path(Path(root), rel_path)
     if not path.is_file():
         raise FileNotFoundError(rel_path)
     current = path.read_text(encoding="utf-8")
@@ -81,7 +124,8 @@ def append_to_note(root: Path, rel_path: str, text: str) -> NoteWriteResult:
     if not snippet:
         raise ValueError("--append must not be empty")
     if snippet in current:
-        return NoteWriteResult(path=Path(rel_path).as_posix(), changed=False)
+        return NoteWriteResult(path=display_path, changed=False)
     separator = "\n" if current.endswith("\n") else "\n\n"
-    path.write_text(current + separator + snippet + "\n", encoding="utf-8")
-    return NoteWriteResult(path=Path(rel_path).as_posix(), changed=True)
+    touched = _replace_timestamp(current, datetime.now(timezone.utc).isoformat())
+    path.write_text(touched + separator + snippet + "\n", encoding="utf-8")
+    return NoteWriteResult(path=display_path, changed=True)

@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from cairn.vault import init_vault
+from cairn.similar import similar_kind
 
 
 def run_cairn(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -54,8 +55,12 @@ class SimilarTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("knowledge/deploy-403.md", result.stdout)
-            self.assertIn("possible duplicate", result.stdout)
+            self.assertIn("duplicate_candidate", result.stdout)
             self.assertIn("similarity=", result.stdout)
+
+    def test_similar_kind_labels_strong_and_moderate_matches(self) -> None:
+        self.assertEqual(similar_kind(0.9), "duplicate_candidate")
+        self.assertEqual(similar_kind(0.65), "related")
 
     def test_cli_similar_json_includes_similarity_score(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -83,6 +88,7 @@ class SimilarTests(unittest.TestCase):
             payload = json.loads(result.stdout)
             self.assertEqual(payload[0]["path"], "knowledge/deploy-403.md")
             self.assertGreaterEqual(payload[0]["similarity"], 0.2)
+            self.assertEqual(payload[0]["kind"], "duplicate_candidate")
 
     def test_cli_similar_finds_near_duplicate_with_extra_terms(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -117,6 +123,7 @@ class SimilarTests(unittest.TestCase):
             payload = json.loads(result.stdout)
             self.assertEqual(payload[0]["path"], "knowledge/deploy-token-rotation.md")
             self.assertGreaterEqual(payload[0]["similarity"], 0.55)
+            self.assertIn(payload[0]["kind"], {"duplicate_candidate", "related"})
 
 
 if __name__ == "__main__":

@@ -86,8 +86,17 @@ cairn capture --path PATH_TO_VAULT \
 ```
 
 `capture` creates a valid Markdown file with a `# Context` section. For richer
-notes, open the created `.md` file and add sections such as `# Diagnosis` and
-`# Resolution`, then run `cairn validate` and `cairn index`.
+notes, keep the Markdown body in a file and pass it directly:
+
+```bash
+cairn capture --path PATH_TO_VAULT \
+  --title "Deploy 403 after token rotation" \
+  --description "Fix stale CI authorization after token rotation." \
+  --type Runbook \
+  --tag bug \
+  --tag deploy \
+  --body-file PATH_TO_NOTE_BODY.md
+```
 
 Update the index:
 
@@ -107,6 +116,7 @@ Retrieve a budgeted context packet for an agent:
 ```bash
 cairn retrieve "deploy 403 token" --path PATH_TO_VAULT --budget 800
 cairn retrieve "deploy 403 token" --path PATH_TO_VAULT --mode passages --budget 400
+cairn retrieve "deploy token rotation kubernetes secret" --path PATH_TO_VAULT --ranker auto --budget 800
 ```
 
 Check for an existing note before creating another one:
@@ -122,6 +132,9 @@ cairn update knowledge/deploy-403-after-token-rotation.md \
   --path PATH_TO_VAULT \
   --append "Add the verification step used in the latest incident."
 ```
+
+For longer updates, use `--append-file PATH_TO_APPEND.md` or pipe content with
+`--append-stdin`.
 
 ## Command Summary
 
@@ -160,8 +173,6 @@ See [examples/README.md](examples/README.md) for more example walkthroughs.
 - [Example vaults](examples/README.md)
 - [Roadmap](ROADMAP.md)
 - [Changelog](CHANGELOG.md)
-- [Search benchmark notes](docs/search-optimization-research.md)
-- [Product requirements](docs/prd.md)
 
 ## Development
 

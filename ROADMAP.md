@@ -12,16 +12,15 @@ local-first workflows, and agent interoperability.
 - Secret-safety checks for validation, retrieval, and export.
 - Fingerprint-backed duplicate detection beyond exact lexical overlap.
 - More robust agent writeback flows for capturing solved problems and updating existing notes.
+- Capture/update ergonomics for Markdown from file/stdin and safer path handling.
+- Retrieve auto-ranker fallback that tries BM25 first and RRF only when needed.
 - Public documentation, examples, and contribution workflow.
-
-Detailed execution plan: [Cairn Search Optimization Implementation Plan](docs/superpowers/plans/2026-06-17-cairn-search-optimization-roadmap.md)
 
 ## Next
 
-- Improve capture/update ergonomics: body from file/stdin, clearer path errors, and safer multi-section writing.
-- Improve retrieval guidance when strict BM25 returns no context but RRF would recover a result.
 - Optional package/plugin adapters for Codex, Claude, GitHub Copilot, and OpenCode.
 - Team-oriented review workflows for shared vault changes.
+- Deterministic writeback scenarios that measure duplicate prevention, note updates, and token cost over multi-agent vault activity.
 
 ## Later
 

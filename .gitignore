@@ -1,5 +1,11 @@
 .sandbox/
 .cairn/
+docs/superpowers/
+docs/plans/
+docs/reports/
+docs/pesquisa.md
+docs/prd.md
+docs/search-optimization-research.md
 __pycache__/
 *.py[cod]
 *.sqlite
