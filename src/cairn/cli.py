@@ -18,7 +18,8 @@ LEGACY_COMMAND = "cairn"
 
 
 def _add_vault_path(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--path", default=".", help="Vault path. Defaults to current directory.")
+    parser.add_argument("--path", help="Vault path. Overrides registered vault selection.")
+    parser.add_argument("--vault", help="Registered vault name. Ignored when --path is provided.")
 
 
 def _read_text_input(value: str | None, file_path: str | None, use_stdin: bool) -> str:
@@ -45,6 +46,26 @@ def _json_ready(value: object) -> object:
 
 def _print_json(value: object) -> None:
     print(json.dumps(_json_ready(value), ensure_ascii=False, indent=2))
+
+
+def _resolve_vault_path(args: argparse.Namespace) -> Path:
+    from cairn.registry import resolve_vault_path
+
+    return resolve_vault_path(path=getattr(args, "path", None), vault_name=getattr(args, "vault", None))
+
+
+def _registry_payload(record: object, active: bool = False) -> dict[str, object]:
+    from cairn.registry import status_for
+
+    status = status_for(record, active=active)
+    return {
+        "name": status.name,
+        "path": status.path,
+        "active": status.active,
+        "exists": status.exists,
+        "is_vault": status.is_vault,
+        "message": status.message,
+    }
 
 
 def _record_usage(
@@ -76,6 +97,29 @@ def build_parser(prog: str = PUBLIC_COMMAND) -> argparse.ArgumentParser:
         choices=list_profiles(),
     )
     init.add_argument("--json", action="store_true")
+
+    vault_cmd = sub.add_parser("vault", help="Manage registered ApolloKairn vaults.")
+    vault_sub = vault_cmd.add_subparsers(dest="vault_command")
+    vault_add = vault_sub.add_parser("add", help="Register a vault path.")
+    vault_add.add_argument("path")
+    vault_add.add_argument("--name", required=True)
+    vault_add.add_argument("--set-active", action="store_true", help="Make this vault active after registering it.")
+    vault_add.add_argument("--json", action="store_true")
+    vault_list = vault_sub.add_parser("list", help="List registered vaults.")
+    vault_list.add_argument("--json", action="store_true")
+    vault_current = vault_sub.add_parser("current", help="Show the active vault.")
+    vault_current.add_argument("--json", action="store_true")
+    vault_use = vault_sub.add_parser("use", help="Mark a registered vault as active.")
+    vault_use.add_argument("name")
+    vault_use.add_argument("--json", action="store_true")
+    vault_show = vault_sub.add_parser("show", help="Show one registered vault.")
+    vault_show.add_argument("name")
+    vault_show.add_argument("--json", action="store_true")
+    vault_remove = vault_sub.add_parser("remove", help="Remove a registered vault.")
+    vault_remove.add_argument("name")
+    vault_remove.add_argument("--json", action="store_true")
+    vault_doctor = vault_sub.add_parser("doctor", help="Check registered vault paths.")
+    vault_doctor.add_argument("--json", action="store_true")
 
     def add_note_parser(name: str, help_text: str) -> argparse.ArgumentParser:
         cmd = sub.add_parser(name, help=help_text)
@@ -261,6 +305,98 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             for item in result.skipped:
                 print(f"skipped {item}")
         return 0
+    if args.command == "vault":
+        from cairn.registry import (
+            RegistryError,
+            add_vault,
+            current_vault,
+            doctor_vaults,
+            list_vaults,
+            load_registry,
+            remove_vault,
+            show_vault,
+            use_vault,
+        )
+
+        try:
+            if args.vault_command == "add":
+                record = add_vault(Path(args.path), name=args.name, set_active=args.set_active)
+                if args.json:
+                    _print_json(_registry_payload(record, active=args.set_active))
+                else:
+                    suffix = " (active)" if args.set_active else ""
+                    print(f"registered {record.name} -> {record.path}{suffix}")
+                return 0
+            if args.vault_command == "list":
+                registry = load_registry()
+                statuses = [_registry_payload(record, active=(record.name == registry.active)) for record in list_vaults()]
+                if args.json:
+                    _print_json({"active": registry.active, "vaults": statuses})
+                elif not statuses:
+                    print("no vaults registered")
+                else:
+                    for status in statuses:
+                        marker = "*" if status["active"] else " "
+                        print(f"{marker} {status['name']} -> {status['path']} ({status['message']})")
+                return 0
+            if args.vault_command == "current":
+                record = current_vault()
+                if record is None:
+                    print("ERROR no active vault", file=sys.stderr)
+                    return 1
+                if args.json:
+                    _print_json(_registry_payload(record, active=True))
+                else:
+                    print(f"{record.name} -> {record.path}")
+                return 0
+            if args.vault_command == "use":
+                record = use_vault(args.name)
+                if args.json:
+                    _print_json(_registry_payload(record, active=True))
+                else:
+                    print(f"active {record.name} -> {record.path}")
+                return 0
+            if args.vault_command == "show":
+                registry = load_registry()
+                record = show_vault(args.name)
+                payload = _registry_payload(record, active=(record.name == registry.active))
+                if args.json:
+                    _print_json(payload)
+                else:
+                    marker = "active " if payload["active"] else ""
+                    print(f"{marker}{record.name} -> {record.path} ({payload['message']})")
+                return 0
+            if args.vault_command == "remove":
+                record = remove_vault(args.name)
+                if args.json:
+                    _print_json(record)
+                else:
+                    print(f"removed {record.name}")
+                return 0
+            if args.vault_command == "doctor":
+                registry = load_registry()
+                statuses = doctor_vaults()
+                ok = all(status.is_vault for status in statuses)
+                if args.json:
+                    _print_json({"ok": ok, "active": registry.active, "vaults": statuses})
+                elif not statuses:
+                    print("no vaults registered")
+                else:
+                    for status in statuses:
+                        marker = "*" if status.active else " "
+                        print(f"{marker} {status.name} -> {status.path} ({status.message})")
+                return 0 if ok else 1
+        except RegistryError as exc:
+            print(f"ERROR {exc}", file=sys.stderr)
+            return 1
+        parser.error("vault requires a subcommand")
+    from cairn.registry import RegistryError
+
+    try:
+        root = _resolve_vault_path(args)
+    except RegistryError as exc:
+        print(f"ERROR {exc}", file=sys.stderr)
+        return 1
     if args.command == "usage":
         from cairn.usage import (
             render_usage_summary,
@@ -271,21 +407,21 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
         )
 
         if args.usage_command == "enable":
-            status = set_usage_enabled(Path(args.path), True)
+            status = set_usage_enabled(root, True)
             if args.json:
                 _print_json(status)
             else:
                 print(f"usage metrics enabled ({status.events_path})")
             return 0
         if args.usage_command == "disable":
-            status = set_usage_enabled(Path(args.path), False)
+            status = set_usage_enabled(root, False)
             if args.json:
                 _print_json(status)
             else:
                 print("usage metrics disabled")
             return 0
         if args.usage_command == "status":
-            status = usage_status(Path(args.path))
+            status = usage_status(root)
             if args.json:
                 _print_json(status)
             else:
@@ -295,7 +431,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
                 print(f"report_path: {status.report_path}")
             return 0
         if args.usage_command == "report":
-            summary = write_usage_report(Path(args.path), output=args.output) if args.html else summarize_usage(Path(args.path))
+            summary = write_usage_report(root, output=args.output) if args.html else summarize_usage(root)
             if args.json:
                 _print_json(summary)
             else:
@@ -308,7 +444,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
         try:
             body = _read_text_input(args.body, args.body_file, args.body_stdin)
             result = create_note(
-                Path(args.path),
+                root,
                 title=args.title,
                 description=args.description,
                 typ=args.note_type,
@@ -323,7 +459,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             )
         except NotePolicyError as exc:
             _record_usage(
-                args.path,
+                root,
                 args.command,
                 started_at,
                 data={"path": exc.path, "type": args.note_type, "tags": args.tag, "dry_run": args.dry_run},
@@ -338,7 +474,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             return 1
         except (FileExistsError, OSError, ValueError) as exc:
             _record_usage(
-                args.path,
+                root,
                 args.command,
                 started_at,
                 data={"type": args.note_type, "tags": args.tag, "dry_run": args.dry_run},
@@ -348,7 +484,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             print(f"ERROR {exc}", file=sys.stderr)
             return 1
         _record_usage(
-            args.path,
+            root,
             args.command,
             started_at,
             data={
@@ -372,7 +508,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
         try:
             append_text = _read_text_input(args.append, args.append_file, args.append_stdin)
             result = append_to_note(
-                Path(args.path),
+                root,
                 args.document,
                 append_text,
                 dry_run=args.dry_run,
@@ -380,7 +516,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             )
         except NotePolicyError as exc:
             _record_usage(
-                args.path,
+                root,
                 args.command,
                 started_at,
                 data={"document": args.document, "dry_run": args.dry_run},
@@ -395,7 +531,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             return 1
         except (FileNotFoundError, OSError, ValueError) as exc:
             _record_usage(
-                args.path,
+                root,
                 args.command,
                 started_at,
                 data={"document": args.document, "dry_run": args.dry_run},
@@ -405,7 +541,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             print(f"ERROR {exc}", file=sys.stderr)
             return 1
         _record_usage(
-            args.path,
+            root,
             args.command,
             started_at,
             data={
@@ -428,7 +564,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
         from cairn.archive import export_vault
 
         try:
-            output = export_vault(Path(args.path), Path(args.output))
+            output = export_vault(root, Path(args.output))
         except (OSError, ValueError) as exc:
             print(f"ERROR {exc}", file=sys.stderr)
             return 1
@@ -441,21 +577,21 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
         from cairn.archive import import_vault
 
         try:
-            root = import_vault(Path(args.archive), Path(args.path))
+            imported_root = import_vault(Path(args.archive), root)
         except (OSError, ValueError) as exc:
             print(f"ERROR {exc}", file=sys.stderr)
             return 1
         if args.json:
-            _print_json({"root": root})
+            _print_json({"root": imported_root})
         else:
-            print(f"imported {root}")
+            print(f"imported {imported_root}")
         return 0
     if args.command == "stats":
         from cairn.stats import collect_stats, render_stats
 
-        stats = collect_stats(Path(args.path))
+        stats = collect_stats(root)
         _record_usage(
-            args.path,
+            root,
             args.command,
             started_at,
             data={
@@ -472,9 +608,9 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
     if args.command == "validate":
         from cairn.validate import validate_vault
 
-        report = validate_vault(Path(args.path))
+        report = validate_vault(root)
         _record_usage(
-            args.path,
+            root,
             args.command,
             started_at,
             data={
@@ -504,9 +640,9 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
     if args.command == "doctor":
         from cairn.doctor import check_vault
 
-        report = check_vault(Path(args.path))
+        report = check_vault(root)
         _record_usage(
-            args.path,
+            root,
             args.command,
             started_at,
             data={"ok": report.ok},
@@ -523,7 +659,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
         from cairn.guides import setup_agent
 
         try:
-            result = setup_agent(Path(args.path), args.agent)
+            result = setup_agent(root, args.agent)
         except ValueError as exc:
             print(f"ERROR {exc}", file=sys.stderr)
             return 1
@@ -536,7 +672,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
         from cairn.guides import refresh_guides
 
         try:
-            results = refresh_guides(Path(args.path))
+            results = refresh_guides(root)
         except ValueError as exc:
             print(f"ERROR {exc}", file=sys.stderr)
             return 1
@@ -551,7 +687,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
 
         if args.vocab_command == "add-term":
             try:
-                term = add_term(Path(args.path), args.term, args.alias)
+                term = add_term(root, args.term, args.alias)
             except ValueError as exc:
                 print(f"ERROR {exc}", file=sys.stderr)
                 return 1
@@ -562,7 +698,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             return 0
         if args.vocab_command == "add-alias":
             try:
-                term = add_alias(Path(args.path), args.term, args.alias)
+                term = add_alias(root, args.term, args.alias)
             except ValueError as exc:
                 print(f"ERROR {exc}", file=sys.stderr)
                 return 1
@@ -574,9 +710,9 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
         if args.vocab_command == "suggest":
             if args.limit <= 0:
                 parser.error("--limit must be positive")
-            report = suggest_terms(Path(args.path), args.query, limit=args.limit)
+            report = suggest_terms(root, args.query, limit=args.limit)
             _record_usage(
-                args.path,
+                root,
                 "vocab.suggest",
                 started_at,
                 data={"query": args.query, "limit": args.limit, "suggestion_count": len(report.suggestions)},
@@ -590,7 +726,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
                         print(f"  - {evidence}")
             return 0
         if args.vocab_command == "validate":
-            report = validate_terms(Path(args.path))
+            report = validate_terms(root)
             if args.json:
                 _print_json(report)
             else:
@@ -605,12 +741,11 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
     if args.command == "index":
         from cairn.indexer import CairnIndexError, sync_index
 
-        root = Path(args.path)
         index_path = root / ".cairn" / "index.db"
         try:
             stats = sync_index(root, rebuild=args.rebuild)
             _record_usage(
-                args.path,
+                root,
                 args.command,
                 started_at,
                 data={
@@ -639,7 +774,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
                     f"(updated {stats.updated}, removed {stats.removed}, skipped {stats.skipped})"
                 )
         except CairnIndexError as exc:
-            _record_usage(args.path, args.command, started_at, data={"rebuild": args.rebuild}, status="error", error=str(exc))
+            _record_usage(root, args.command, started_at, data={"rebuild": args.rebuild}, status="error", error=str(exc))
             print(f"ERROR {exc}", file=sys.stderr)
             return 1
         return 0
@@ -649,7 +784,6 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
 
         if args.limit <= 0:
             parser.error("--limit must be positive")
-        root = Path(args.path)
         try:
             results = search(
                 root,
@@ -662,7 +796,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             )
         except CairnIndexError as exc:
             _record_usage(
-                args.path,
+                root,
                 args.command,
                 started_at,
                 data={"query": args.query, "ranker": args.ranker, "limit": args.limit},
@@ -672,7 +806,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             print(f"ERROR {exc}", file=sys.stderr)
             return 1
         _record_usage(
-            args.path,
+            root,
             args.command,
             started_at,
             data={
@@ -725,7 +859,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             parser.error("--budget must be positive")
         try:
             packet = retrieve_packet(
-                Path(args.path),
+                root,
                 args.query,
                 limit=args.limit,
                 budget_tokens=args.budget,
@@ -737,7 +871,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             )
         except (CairnIndexError, FileNotFoundError, ValueError) as exc:
             _record_usage(
-                args.path,
+                root,
                 args.command,
                 started_at,
                 data={"query": args.query, "ranker": args.ranker, "mode": args.mode, "limit": args.limit, "budget_tokens": args.budget},
@@ -747,7 +881,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             print(f"ERROR {exc}", file=sys.stderr)
             return 1
         _record_usage(
-            args.path,
+            root,
             args.command,
             started_at,
             data={
@@ -763,7 +897,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             },
         )
         if args.explain:
-            explanations = explain_retrieval_sources(Path(args.path), args.query, packet.sources, packet.ranker)
+            explanations = explain_retrieval_sources(root, args.query, packet.sources, packet.ranker)
             if args.json:
                 _print_json({"packet": packet, "explanations": explanations})
             else:
@@ -789,7 +923,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             parser.error("--limit must be positive")
         try:
             results = find_similar(
-                Path(args.path),
+                root,
                 args.query,
                 limit=args.limit,
                 type_filter=args.type_filter,
@@ -798,7 +932,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             )
         except CairnIndexError as exc:
             _record_usage(
-                args.path,
+                root,
                 args.command,
                 started_at,
                 data={"query": args.query, "limit": args.limit},
@@ -808,7 +942,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             print(f"ERROR {exc}", file=sys.stderr)
             return 1
         _record_usage(
-            args.path,
+            root,
             args.command,
             started_at,
             data={
@@ -835,7 +969,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
             ]
             if sum(partial_modes) > 1:
                 parser.error("use only one of --lines, --section, or --snippet")
-            text = show(Path(args.path), args.document)
+            text = show(root, args.document)
             if args.lines:
                 text = extract_lines(text, args.lines)
                 mode = "lines"
@@ -864,7 +998,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
                     }
                 )
                 _record_usage(
-                    args.path,
+                    root,
                     args.command,
                     started_at,
                     data={"document": args.document, "mode": mode, "selector": selector, "tokens": approx_tokens(text)},
@@ -874,14 +1008,14 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
                 from cairn.retriever import approx_tokens
 
                 _record_usage(
-                    args.path,
+                    root,
                     args.command,
                     started_at,
                     data={"document": args.document, "mode": mode, "selector": selector, "tokens": approx_tokens(text)},
                 )
         except (FileNotFoundError, ValueError) as exc:
             _record_usage(
-                args.path,
+                root,
                 args.command,
                 started_at,
                 data={"document": args.document},

@@ -13,6 +13,9 @@ implementation history.
 - Machine-readable `--json` output for all operational commands, including
   vault setup, archive import/export, guide generation, writeback, validation,
   retrieval, and glossary management.
+- Local vault registry with named vaults, one active vault, `--vault` command
+  resolution, and JSON-friendly discovery for agents working from other
+  repositories.
 - Budgeted retrieval for LLM context packets, including passage-level retrieval
   for smaller prompts.
 - Structured retrieval packets with source provenance, budget accounting,

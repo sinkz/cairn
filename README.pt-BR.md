@@ -12,7 +12,7 @@
   <p>
     <img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white">
     <img alt="Dependências de runtime: zero" src="https://img.shields.io/badge/dependencias_runtime-0-2f6f4e">
-    <img alt="Testes de regressão: 183" src="https://img.shields.io/badge/testes-183-3b6ea8">
+    <img alt="Testes de regressão: 194" src="https://img.shields.io/badge/testes-194-3b6ea8">
     <img alt="Recall at 3: 1.00" src="https://img.shields.io/badge/Recall%403-1.00-2f6f4e">
     <img alt="Redução de contexto: 91.83%" src="https://img.shields.io/badge/reducao_contexto-91.83%25-8a5a44">
     <img alt="Acurácia de decisão de escrita: 100%" src="https://img.shields.io/badge/escrita_decisoes-100%25-285da8">
@@ -53,7 +53,7 @@ atualizar vs criar.
 | Redução em comparativos | `53.73%` | Redução medida nas rodadas comparativas configuradas. |
 | Acurácia de decisão de escrita | `100%` | Decisões corretas de criar, atualizar, no-op e conflito no conjunto de fixtures. |
 | Prevenção de duplicatas | `100%` | Notas reutilizáveis existentes são atualizadas ou preservadas em vez de duplicadas. |
-| Testes de regressão | `183` | Testes unitários e de workflow rodados antes da publicação atual. |
+| Testes de regressão | `194` | Testes unitários e de workflow rodados antes da publicação atual. |
 
 Os dados do benchmark também são publicados no site por
 [`docs/data/benchmarks.json`](docs/data/benchmarks.json).
@@ -61,7 +61,7 @@ Os dados do benchmark também são publicados no site por
 ```bash
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 183
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 194
 ```
 
 ## Instalação Rápida
@@ -112,6 +112,35 @@ Perfis criam a estrutura inicial de pastas e schema:
 | `support` | Triagem de suporte, procedimentos, FAQs e escalonamentos |
 | `product` | Requisitos, discovery, métricas e decisões de release |
 | `custom` | Um schema mínimo para adaptar |
+
+## Registrar Vaults
+
+Registrar vaults permite trabalhar de qualquer repositório sem lembrar caminhos
+longos:
+
+```bash
+apollokairn vault add CAMINHO_DO_VAULT --name pessoal --set-active
+apollokairn vault list
+apollokairn vault current
+apollokairn vault use pessoal
+```
+
+Depois os comandos podem usar o vault ativo:
+
+```bash
+apollokairn search "deploy 403"
+apollokairn retrieve "pedido de acesso" --budget 500
+```
+
+Agentes e scripts devem preferir nomes explícitos depois da descoberta:
+
+```bash
+apollokairn vault list --json
+apollokairn search "deploy 403" --vault pessoal --json
+```
+
+A ordem de resolução é `--path`, depois `--vault`, depois o vault ativo
+registrado e, por fim, o diretório atual para manter compatibilidade.
 
 ## Instalar Pelo Código Fonte
 
@@ -180,7 +209,7 @@ apollokairn search "deploy 403 token" --path CAMINHO_DO_VAULT --json --explain
 ```
 
 Se seu time usa sinônimos estáveis como `k8s` e `kubernetes`, mantenha isso em
-`glossary.md` para a busca estrita expandir misses exatos de forma
+`glossary.md` para a busca expandir vocabulário aprovado de forma
 determinística:
 
 ```bash
@@ -221,6 +250,7 @@ de segredo antes da escrita.
 | Comando | Função |
 | --- | --- |
 | `apollokairn init` | Cria um vault |
+| `apollokairn vault` | Registra, lista, inspeciona e troca vaults nomeados |
 | `apollokairn validate` | Verifica frontmatter, schema e valores comuns com aparência de segredo |
 | `apollokairn index` | Cria ou atualiza o índice local |
 | `apollokairn doctor` | Verifica saúde do vault e do índice |
@@ -279,7 +309,7 @@ Rode os benchmarks determinísticos:
 ```bash
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 183
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 194
 ```
 
 Os benchmarks verificam qualidade de ranking, prefixos golden, orçamentos de

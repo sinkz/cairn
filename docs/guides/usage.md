@@ -86,6 +86,47 @@ The command creates:
 The vault may also contain a top-level `glossary.md`. ApolloKairn treats it as a
 reserved control file, not as a regular note.
 
+## Vault Registry
+
+The registry is local user state that maps short names to vault paths. It lets a
+human or agent work from any repository without changing directories or
+remembering long paths.
+
+```bash
+apollokairn vault add ~/brain --name personal --set-active
+apollokairn vault add ~/work-brain --name work
+apollokairn vault list
+apollokairn vault current
+apollokairn vault use work
+apollokairn vault doctor
+```
+
+After a vault is active, commands can omit `--path`:
+
+```bash
+apollokairn search "deploy 403"
+apollokairn retrieve "production access" --budget 500
+```
+
+Agents and scripts should discover vaults with JSON and then pass `--vault`
+explicitly:
+
+```bash
+apollokairn vault list --json
+apollokairn search "deploy 403" --vault work --json
+apollokairn capture --vault personal --title "Token rotation" --description "..." --tag deploy --body "..."
+```
+
+Vault resolution order is:
+
+1. `--path PATH`
+2. `--vault NAME`
+3. active vault from `apollokairn vault use NAME`
+4. current directory
+
+The registry stores only names, absolute paths, timestamps, and the active vault
+name. It does not store note content or secrets.
+
 ## Configuration
 
 ApolloKairn stores local settings in `.cairn/config.json`.
@@ -176,10 +217,9 @@ status: approved
 scope: engineering
 ```
 
-ApolloKairn keeps the default search conservative. `search` and `retrieve` first run
-the exact BM25 query. Only when that returns no rows, ApolloKairn expands approved
-glossary terms and aliases and retries with a cheap OR query. This keeps common
-queries stable while still covering curated synonym gaps.
+ApolloKairn keeps the default search conservative. `search` and `retrieve` expand
+approved glossary terms and aliases into deterministic query groups so lexical
+variants can compete in the same ranked result set without hard-coded synonyms.
 
 Manage the glossary with:
 
@@ -196,6 +236,32 @@ from local notes so a human or agent can decide whether an alias should become
 approved vocabulary.
 
 ## Command Reference
+
+### `apollokairn vault`
+
+Registers and selects named vaults outside the vault itself.
+
+```bash
+apollokairn vault add ~/brain --name personal
+apollokairn vault add ~/work-brain --name work --set-active
+apollokairn vault list
+apollokairn vault list --json
+apollokairn vault current
+apollokairn vault current --json
+apollokairn vault use personal
+apollokairn vault show work --json
+apollokairn vault remove work
+apollokairn vault doctor --json
+```
+
+Use `vault add` after `init`. `--set-active` marks the new record as the default
+for later commands. `vault doctor` checks whether registered paths still exist
+and still look like ApolloKairn vaults.
+
+Operational commands accept both `--path` and `--vault`. `--path` is the most
+explicit and always wins. `--vault` is useful for agents after running
+`vault list --json`. The active vault is convenient for human CLI sessions and
+future TUI workflows.
 
 ### `apollokairn init`
 
@@ -351,8 +417,9 @@ Use search before opening full documents. This is the main token-saving command.
 The default `bm25` ranker is strict and stable. Use experimental `--ranker rrf`
 when the query may contain extra terms or lexical variants and you want ApolloKairn to
 fuse multiple cheap lexical runs.
-If a top-level `glossary.md` exists, strict BM25 automatically gets one fallback
-attempt with approved aliases only when the exact query returns no rows.
+If a top-level `glossary.md` exists, approved aliases are folded into the
+deterministic search flow so terms such as `k8s` and `kubernetes` can retrieve
+the same notes without hard-coded Python synonyms.
 
 Filters:
 
@@ -551,16 +618,18 @@ See [Agent adapters](adapters.md) for supported targets and generated paths.
 
 ## Recommended Agent Workflow
 
-1. Run `apollokairn doctor --path <vault>`.
-2. Run `apollokairn search "<symptom or task>" --path <vault> --json`.
-3. Open at most the top three results.
-4. Prefer `show --section`, `show --snippet`, or `retrieve --budget` before full
+1. Resolve a vault with `--path <vault>`, `--vault <name>`, or
+   `apollokairn vault current --json`.
+2. Run `apollokairn doctor --vault <name>` or `apollokairn doctor --path <vault>`.
+3. Run `apollokairn search "<symptom or task>" --vault <name> --json`.
+4. Open at most the top three results.
+5. Prefer `show --section`, `show --snippet`, or `retrieve --budget` before full
    documents.
-5. Solve the task.
-6. Run `apollokairn similar "<new knowledge>" --path <vault>`.
-7. Update an existing note when possible; create a new note only when the
+6. Solve the task.
+7. Run `apollokairn similar "<new knowledge>" --vault <name>`.
+8. Update an existing note when possible; create a new note only when the
    knowledge is reusable and not already represented.
-8. Run `apollokairn validate --path <vault>` and `apollokairn index --path <vault>`.
+9. Run `apollokairn validate --vault <name>` and `apollokairn index --vault <name>`.
 
 ## Repository Development
 
@@ -576,7 +645,7 @@ Run deterministic evaluations:
 python bench/run_eval.py
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 183
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 194
 ```
 
 Benchmark topics may include `category`, `mode`, `compare_mode`, `ranker`, and

@@ -18,6 +18,7 @@ from cairn.vault import init_vault
 def run_cairn(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
     env = dict(os.environ)
     env["PYTHONPATH"] = str(ROOT / "src")
+    env.setdefault("APOLLOKAIRN_REGISTRY_PATH", str(ROOT / ".cairn" / f"test-registry-{os.getpid()}.json"))
     return subprocess.run(
         [sys.executable, "-m", "cairn", *args],
         cwd=cwd,
@@ -41,6 +42,7 @@ class GuidesTests(unittest.TestCase):
             self.assertTrue((root / "CODEX.md").is_file())
             text = (root / "CODEX.md").read_text(encoding="utf-8")
             self.assertIn("apollokairn doctor", text)
+            self.assertIn("apollokairn vault current --json", text)
             self.assertIn("apollokairn retrieve", text)
             self.assertIn("SCHEMA.md", text)
             self.assertIn("--body-file", text)

@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def run_cairn(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
     env = dict(os.environ)
     env["PYTHONPATH"] = str(ROOT / "src")
+    env.setdefault("APOLLOKAIRN_REGISTRY_PATH", str(ROOT / ".cairn" / f"test-registry-{os.getpid()}.json"))
     return subprocess.run(
         [sys.executable, "-m", "cairn", *args],
         cwd=cwd,

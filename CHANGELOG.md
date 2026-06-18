@@ -4,6 +4,12 @@ All notable ApolloKairn changes are tracked here.
 
 ## Unreleased
 
+### Added
+
+- Added `apollokairn vault` for local multi-vault registration, active-vault
+  switching, JSON-friendly discovery, and `--vault` resolution from any
+  working directory.
+
 ## 0.1.4 - 2026-06-18
 
 ### Added

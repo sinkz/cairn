@@ -17,6 +17,9 @@ verified, and aligned with the project constraints.
   fixtures, docs, vaults, examples, or tests.
 - Usage metrics are opt-in, local, and redacted. Do not log note bodies or
   snippets. Keep `.cairn/usage/` and `.cairn/reports/` out of version control.
+- The vault registry is local user state. Tests must isolate it with
+  `APOLLOKAIRN_REGISTRY_PATH`; never touch the real user registry in automated
+  tests.
 
 ## Current Priority
 
@@ -28,7 +31,8 @@ Follow `ROADMAP.md`. The current focus is:
 - note freshness and provenance metadata that does not mutate Markdown during
   reads;
 - pilot usage metrics that help evaluate real vault behavior without network
-  telemetry or hidden data capture.
+  telemetry or hidden data capture;
+- explicit multi-vault workflows through `apollokairn vault` and `--vault`.
 
 Do not treat ranking scores as confidence. Keep glossary behavior explicit and
 reviewable; do not hard-code domain synonyms in Python. Do not add persistent
@@ -68,7 +72,7 @@ work is done:
 python -m unittest discover
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 183
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 194
 git diff --check
 ```
 
@@ -105,7 +109,7 @@ writeback regressions:
 ```bash
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 183
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 194
 ```
 
 When benchmark numbers change intentionally, update:
@@ -158,3 +162,6 @@ finishes, verify at least one asset download and `apollokairn --version`.
   the command in the relevant guide.
 - If changing usage metrics, keep tracking opt-in, update `tests/test_usage.py`,
   and verify events omit note bodies, snippets, and secret-like values.
+- If changing vault registry behavior, update `tests/test_registry.py`,
+  `tests/test_cli.py`, and public docs. Preserve resolution order:
+  `--path`, `--vault`, active registry vault, current directory.
