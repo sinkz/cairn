@@ -11,6 +11,11 @@ from cairn.profiles import list_profiles
 from cairn.vault import init_vault
 
 
+PUBLIC_PROJECT_NAME = "ApolloKairn"
+PUBLIC_COMMAND = "apollokairn"
+LEGACY_COMMAND = "cairn"
+
+
 def _add_vault_path(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--path", default=".", help="Vault path. Defaults to current directory.")
 
@@ -41,9 +46,9 @@ def _print_json(value: object) -> None:
     print(json.dumps(_json_ready(value), ensure_ascii=False, indent=2))
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="cairn")
-    parser.add_argument("--version", action="version", version=f"cairn {__version__}")
+def build_parser(prog: str = PUBLIC_COMMAND) -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog=prog)
+    parser.add_argument("--version", action="version", version=f"{PUBLIC_COMMAND} {__version__}")
     sub = parser.add_subparsers(dest="command")
 
     init = sub.add_parser("init", help="Initialize a Cairn vault.")
@@ -190,7 +195,22 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
+def _legacy_invocation_name(invoked_as: str | None) -> str:
+    if invoked_as:
+        return Path(invoked_as).stem.casefold()
+    return Path(sys.argv[0]).stem.casefold()
+
+
+def _warn_if_legacy_invocation(invoked_as: str | None) -> None:
+    if _legacy_invocation_name(invoked_as) == LEGACY_COMMAND:
+        print(
+            f"WARNING: `{LEGACY_COMMAND}` is deprecated; use `{PUBLIC_COMMAND}` instead.",
+            file=sys.stderr,
+        )
+
+
+def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
+    _warn_if_legacy_invocation(invoked_as)
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.command is None:

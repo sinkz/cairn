@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cairn"
+name = "apollokairn-cli"
 version = "0.1.1"
 description = "Agent-ready second brain for people and teams."
 readme = "README.md"
@@ -12,6 +12,8 @@ license = { file = "LICENSE" }
 dependencies = []
 
 [project.scripts]
+apollokairn = "cairn.cli:main"
+ak = "cairn.cli:main"
 cairn = "cairn.cli:main"
 
 [tool.setuptools.packages.find]
