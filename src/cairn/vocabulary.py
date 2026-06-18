@@ -111,7 +111,7 @@ def _render_terms(terms: Sequence[VocabularyTerm]) -> str:
     lines = [
         "# Glossary",
         "",
-        "Approved aliases in this file are used for deterministic Cairn query expansion.",
+        "Approved aliases in this file are used for deterministic ApolloKairn query expansion.",
         "",
     ]
     for term in sorted(terms, key=lambda item: _normalize(item.title)):

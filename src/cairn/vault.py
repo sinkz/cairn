@@ -40,8 +40,8 @@ def init_vault(root: Path, profile_name: str = "personal") -> InitResult:
 
     _write_if_missing(root / "AGENTS.md", render_agents_md(profile), result)
     _write_if_missing(root / "SCHEMA.md", render_schema_md(profile), result)
-    _write_if_missing(root / "index.md", "# Cairn Vault\n\n", result)
-    _write_if_missing(root / "log.md", "# Cairn Update Log\n\n", result)
+    _write_if_missing(root / "index.md", "# ApolloKairn Vault\n\n", result)
+    _write_if_missing(root / "log.md", "# ApolloKairn Update Log\n\n", result)
     _write_if_missing(root / ".gitignore", ".cairn/index.db\n", result)
     _write_if_missing(
         root / ".cairn" / "config.json",

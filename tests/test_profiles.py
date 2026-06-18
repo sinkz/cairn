@@ -30,7 +30,7 @@ class ProfileTests(unittest.TestCase):
         profile = get_profile("support")
         text = render_schema_md(profile)
 
-        self.assertIn("# Cairn Schema", text)
+        self.assertIn("# ApolloKairn Schema", text)
         self.assertIn("## Types", text)
         self.assertIn("- Procedure", text)
         self.assertIn("## Tags", text)
@@ -40,11 +40,11 @@ class ProfileTests(unittest.TestCase):
         profile = get_profile("personal")
         text = render_agents_md(profile)
 
-        self.assertIn("cairn search", text)
+        self.assertIn("apollokairn search", text)
         self.assertIn("Open at most the top 3", text)
         self.assertIn("SCHEMA.md", text)
         self.assertIn("--body-file", text)
-        self.assertIn("cairn index", text)
+        self.assertIn("apollokairn index", text)
         self.assertIn("Never store secrets", text)
 
 

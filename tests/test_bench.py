@@ -213,7 +213,7 @@ class BenchTests(unittest.TestCase):
             fixture = base / "vault"
             fixture.mkdir()
             (fixture / "SCHEMA.md").write_text(
-                "# Cairn Schema\n\n"
+                "# ApolloKairn Schema\n\n"
                 "## Types\n\n"
                 "- Runbook\n\n"
                 "## Tags\n\n"

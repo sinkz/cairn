@@ -14,7 +14,7 @@ from cairn.schema import parse_schema
 class SchemaTests(unittest.TestCase):
     def test_parse_types_and_tags(self) -> None:
         schema = parse_schema(
-            "# Cairn Schema\n\n"
+            "# ApolloKairn Schema\n\n"
             "Profile: `engineering`\n\n"
             "## Types\n\n"
             "- Runbook\n"

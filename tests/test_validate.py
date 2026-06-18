@@ -127,7 +127,7 @@ class ValidateTests(unittest.TestCase):
             root = Path(tmp)
             init_vault(root, profile_name="personal")
             (root / "SCHEMA.md").write_text(
-                "# Cairn Schema\n\n"
+                "# ApolloKairn Schema\n\n"
                 "Profile: `custom`\n\n"
                 "## Types\n\n"
                 "- Note\n\n"

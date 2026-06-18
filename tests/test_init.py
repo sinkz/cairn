@@ -29,6 +29,9 @@ class InitVaultTests(unittest.TestCase):
             self.assertTrue((root / ".cairn" / "config.json").exists())
             self.assertTrue((root / "_templates" / "concept.md").exists())
             self.assertTrue((root / "processes").is_dir())
+            self.assertIn("# ApolloKairn Vault", (root / "index.md").read_text(encoding="utf-8"))
+            self.assertIn("# ApolloKairn Update Log", (root / "log.md").read_text(encoding="utf-8"))
+            self.assertIn("# ApolloKairn Agent Guide", (root / "AGENTS.md").read_text(encoding="utf-8"))
             self.assertIn("AGENTS.md", result.created)
 
     def test_init_is_idempotent(self) -> None:

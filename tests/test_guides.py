@@ -40,12 +40,15 @@ class GuidesTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue((root / "CODEX.md").is_file())
             text = (root / "CODEX.md").read_text(encoding="utf-8")
-            self.assertIn("cairn doctor", text)
-            self.assertIn("cairn retrieve", text)
+            self.assertIn("apollokairn doctor", text)
+            self.assertIn("apollokairn retrieve", text)
             self.assertIn("SCHEMA.md", text)
             self.assertIn("--body-file", text)
-            self.assertIn("cairn vocab suggest", text)
-            self.assertIn("Run `cairn validate --path <vault>` and `cairn index --path <vault>` after every successful write", text)
+            self.assertIn("apollokairn vocab suggest", text)
+            self.assertIn(
+                "Run `apollokairn validate --path <vault>` and `apollokairn index --path <vault>` after every successful write",
+                text,
+            )
 
     def test_cli_setup_agent_json_reports_generated_path(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -69,8 +72,8 @@ class GuidesTests(unittest.TestCase):
             payload = json.loads(result.stdout)
             self.assertEqual(payload["path"], "HERMES.md")
             text = (root / "HERMES.md").read_text(encoding="utf-8")
-            self.assertIn("Cairn Guide for Hermes", text)
-            self.assertIn("cairn search", text)
+            self.assertIn("ApolloKairn Guide for Hermes", text)
+            self.assertIn("apollokairn search", text)
             self.assertIn("--json", text)
 
     def test_cli_setup_agent_supports_copilot_custom_instructions(self) -> None:
@@ -84,8 +87,8 @@ class GuidesTests(unittest.TestCase):
             payload = json.loads(result.stdout)
             self.assertEqual(payload["path"], ".github/copilot-instructions.md")
             text = (root / ".github" / "copilot-instructions.md").read_text(encoding="utf-8")
-            self.assertIn("Cairn Guide for GitHub Copilot", text)
-            self.assertIn("cairn retrieve", text)
+            self.assertIn("ApolloKairn Guide for GitHub Copilot", text)
+            self.assertIn("apollokairn retrieve", text)
 
     def test_cli_refresh_guides_uses_configured_generated_guides(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
