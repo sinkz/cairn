@@ -93,13 +93,13 @@ uses a non-glibc libc, install from source instead.
 Linux and macOS:
 
 ```bash
-curl -fsSL https://sinkz.github.io/apollokairn/install.sh | APOLLOKAIRN_VERSION=v0.1.1 sh
+curl -fsSL https://sinkz.github.io/apollokairn/install.sh | APOLLOKAIRN_VERSION=v0.1.2 sh
 ```
 
 Windows PowerShell:
 
 ```powershell
-$env:APOLLOKAIRN_VERSION = "v0.1.1"
+$env:APOLLOKAIRN_VERSION = "v0.1.2"
 irm https://sinkz.github.io/apollokairn/install.ps1 | iex
 ```
 

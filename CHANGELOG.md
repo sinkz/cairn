@@ -4,6 +4,8 @@ All notable ApolloKairn changes are tracked here.
 
 ## Unreleased
 
+## 0.1.2 - 2026-06-18
+
 ### Changed
 
 - Renamed the public project to ApolloKairn.

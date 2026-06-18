@@ -61,7 +61,7 @@ Os dados do benchmark também são publicados no site por
 ```bash
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 170
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 174
 ```
 
 ## Instalação Rápida
@@ -278,7 +278,7 @@ Rode os benchmarks determinísticos:
 ```bash
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 170
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 174
 ```
 
 Os benchmarks verificam qualidade de ranking, prefixos golden, orçamentos de

@@ -60,7 +60,7 @@ Benchmark data is also published on the website through
 ```bash
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 170
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 174
 ```
 
 ## Quick Install
@@ -275,7 +275,7 @@ Run the deterministic benchmarks:
 ```bash
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 170
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 174
 ```
 
 The benchmarks check ranking quality, golden result prefixes, token budgets,
