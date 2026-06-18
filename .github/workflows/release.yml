@@ -106,8 +106,7 @@ jobs:
       - name: Package Linux x64 binary
         run: |
           mkdir -p release-assets
-          chmod +x dist/cairn
-          tar -czf release-assets/cairn-linux-x64.tar.gz -C dist cairn
+          tar --mode='u+x,go+rx' -czf release-assets/cairn-linux-x64.tar.gz -C dist cairn
       - uses: actions/upload-artifact@v4
         with:
           name: cairn-linux-x64

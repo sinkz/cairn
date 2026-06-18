@@ -85,6 +85,12 @@ class InstallScriptTests(unittest.TestCase):
         self.assertIn("checksums.txt", workflow)
         self.assertIn("softprops/action-gh-release", workflow)
 
+    def test_linux_x64_release_packaging_does_not_chmod_container_output(self) -> None:
+        workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+
+        self.assertIn("tar --mode='u+x,go+rx'", workflow)
+        self.assertNotIn("chmod +x dist/cairn\n          tar -czf release-assets/cairn-linux-x64.tar.gz", workflow)
+
     def test_ci_runs_writeback_benchmark(self) -> None:
         ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
         release = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
