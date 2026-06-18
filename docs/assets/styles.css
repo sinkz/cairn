@@ -440,6 +440,7 @@ h3 {
 
 .metric-card,
 .workflow-card,
+.install-card,
 .use-case-grid article,
 .roadmap-columns article {
   background: var(--paper-strong);
@@ -467,6 +468,42 @@ h3 {
   font-size: 2.45rem;
   line-height: 1;
   margin: 22px 0 18px;
+}
+
+.install-section {
+  border-bottom: 1px solid var(--line);
+}
+
+.install-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, 1fr);
+  margin-bottom: 24px;
+}
+
+.install-card {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+}
+
+.install-card span {
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.install-card code {
+  background: rgba(21, 19, 15, 0.06);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  display: block;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  padding: 14px;
 }
 
 .metric-card p {
@@ -1004,6 +1041,10 @@ h3 {
     grid-template-columns: repeat(3, 1fr);
   }
 
+  .install-grid {
+    grid-template-columns: 1fr;
+  }
+
   .benchmark-panel,
   .split-section,
   .learn-hero {
@@ -1082,6 +1123,7 @@ h3 {
 
   .proof-band,
   .metric-grid,
+  .install-grid,
   .workflow-grid,
   .use-case-grid,
   .roadmap-columns,

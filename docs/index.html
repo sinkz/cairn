@@ -30,6 +30,7 @@
       </a>
       <nav class="nav-links" aria-label="Page sections">
         <a href="learn.html">Learn</a>
+        <a href="#install">Install</a>
         <a href="#benchmarks">Benchmarks</a>
         <a href="#workflow">Workflow</a>
         <a href="#roadmap">Roadmap</a>
@@ -75,11 +76,13 @@
           </p>
 
           <div class="hero-actions" aria-label="Primary actions">
-            <a class="button primary" href="https://github.com/sinkz/cairn">GitHub</a>
+            <a class="button primary" href="#install" data-lang-content="en">Install</a>
+            <a class="button primary" href="#install" data-lang-content="pt">Instalar</a>
             <a class="button secondary" href="learn.html" data-lang-content="en">How it works</a>
             <a class="button secondary" href="learn.html" data-lang-content="pt">Como funciona</a>
             <a class="button secondary" href="#benchmarks" data-lang-content="en">See benchmarks</a>
             <a class="button secondary" href="#benchmarks" data-lang-content="pt">Ver benchmarks</a>
+            <a class="button secondary" href="https://github.com/sinkz/cairn">GitHub</a>
           </div>
         </div>
       </section>
@@ -100,6 +103,44 @@
           <span data-lang-content="en">Codex, Claude, OpenCode, Copilot, or shell-capable harnesses.</span>
           <span data-lang-content="pt">Codex, Claude, OpenCode, Copilot ou harnesses com shell.</span>
         </div>
+      </section>
+
+      <section class="section install-section" id="install">
+        <div class="section-heading compact">
+          <p class="eyebrow" data-lang-content="en">Quick install</p>
+          <p class="eyebrow" data-lang-content="pt">Instalação rápida</p>
+          <h2 data-lang-content="en">Install the CLI first. Create the vault where you want it.</h2>
+          <h2 data-lang-content="pt">Instale a CLI primeiro. Crie o vault onde você quiser.</h2>
+          <p data-lang-content="en">
+            Release installers download standalone binaries from GitHub Releases,
+            verify checksums, and place <code>cairn</code> on your PATH. Python is
+            not required for this install path.
+          </p>
+          <p data-lang-content="pt">
+            Os instaladores baixam binários standalone do GitHub Releases,
+            validam checksums e colocam <code>cairn</code> no PATH. Python não é
+            necessário neste caminho de instalação.
+          </p>
+        </div>
+
+        <div class="install-grid">
+          <article class="install-card">
+            <span>Linux / macOS</span>
+            <code>curl -fsSL https://sinkz.github.io/cairn/install.sh | sh</code>
+          </article>
+          <article class="install-card">
+            <span>Windows PowerShell</span>
+            <code>irm https://sinkz.github.io/cairn/install.ps1 | iex</code>
+          </article>
+          <article class="install-card">
+            <span data-lang-content="en">Create a vault</span>
+            <span data-lang-content="pt">Criar um vault</span>
+            <code>cairn init --path PATH_TO_VAULT --profile personal</code>
+          </article>
+        </div>
+
+        <a class="text-link" href="guides/quick-install.md" data-lang-content="en">Read install troubleshooting</a>
+        <a class="text-link" href="guides/quick-install.pt-BR.md" data-lang-content="pt">Ver solução de problemas de instalação</a>
       </section>
 
       <section class="section" id="benchmarks">

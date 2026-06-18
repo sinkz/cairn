@@ -3,6 +3,7 @@
   <p><strong>Conhecimento em Markdown para fluxos de busca, recuperação e escrita.</strong></p>
   <p>
     <a href="https://sinkz.github.io/cairn/">Site</a> ·
+    <a href="docs/guides/quick-install.pt-BR.md">Instalação rápida</a> ·
     <a href="https://sinkz.github.io/cairn/learn.html">Como funciona</a> ·
     <a href="docs/guides/usage.pt-BR.md">Guia de uso</a> ·
     <a href="examples/README.md">Exemplos</a> ·
@@ -57,28 +58,32 @@ Os dados do benchmark também são publicados no site por
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 ```
 
-## Começo Rápido
+## Instalação Rápida
+
+Binários prontos do GitHub Releases não exigem Python instalado.
+
+Linux e macOS:
 
 ```bash
-git clone https://github.com/sinkz/cairn.git
-cd cairn
-python -m pip install -e .
+curl -fsSL https://sinkz.github.io/cairn/install.sh | sh
+```
+
+Windows PowerShell:
+
+```powershell
+irm https://sinkz.github.io/cairn/install.ps1 | iex
+```
+
+Depois valide:
+
+```powershell
+cairn --version
 cairn --help
 ```
 
-Se não quiser instalar o pacote, rode pelo checkout fonte:
-
-```bash
-export PYTHONPATH="$PWD/src"
-python -m cairn --help
-```
-
-PowerShell:
-
-```powershell
-$env:PYTHONPATH = Join-Path (Resolve-Path .).Path "src"
-python -m cairn --help
-```
+Veja [Instalação rápida](docs/guides/quick-install.pt-BR.md) para caminhos
+customizados, versão fixa, configuração de PATH, problemas de checksum e
+fallback manual.
 
 ## Criar Um Vault
 
@@ -98,6 +103,32 @@ Perfis criam a estrutura inicial de pastas e schema:
 | `support` | Triagem de suporte, procedimentos, FAQs e escalonamentos |
 | `product` | Requisitos, discovery, métricas e decisões de release |
 | `custom` | Um schema mínimo para adaptar |
+
+## Instalar Pelo Código Fonte
+
+A instalação pelo código fonte é mais útil para desenvolvimento ou quando ainda
+não houver binários publicados em release:
+
+```bash
+git clone https://github.com/sinkz/cairn.git
+cd cairn
+python -m pip install -e .
+cairn --help
+```
+
+Rodar sem instalar:
+
+```bash
+export PYTHONPATH="$PWD/src"
+python -m cairn --help
+```
+
+PowerShell:
+
+```powershell
+$env:PYTHONPATH = Join-Path (Resolve-Path .).Path "src"
+python -m cairn --help
+```
 
 ## Fluxo Diário
 
@@ -192,6 +223,7 @@ Veja [examples/README.md](examples/README.md) para mais walkthroughs.
 | --- | --- |
 | [Site](https://sinkz.github.io/cairn/) | Overview público e cards de benchmark |
 | [Como funciona](https://sinkz.github.io/cairn/learn.html) | Explicação conceitual e técnica |
+| [Instalação rápida](docs/guides/quick-install.pt-BR.md) | Binários, PATH e solução de problemas |
 | [Guia de uso](docs/guides/usage.pt-BR.md) | Guia completo dos comandos |
 | [Vaults de exemplo](examples/README.md) | Exemplos reproduzíveis |
 | [Roadmap](ROADMAP.md) | Fases atuais de implementação |

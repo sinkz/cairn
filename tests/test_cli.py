@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -33,6 +34,15 @@ class CliSmokeTests(unittest.TestCase):
         self.assertIn("init", result.stdout)
         self.assertIn("search", result.stdout)
         self.assertIn("validate", result.stdout)
+
+    def test_version_prints_package_version(self) -> None:
+        version = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
+
+        result = run_cairn("--version")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), f"cairn {version}")
+        self.assertEqual(result.stderr, "")
 
 
 if __name__ == "__main__":

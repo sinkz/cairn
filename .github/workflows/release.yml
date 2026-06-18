@@ -1,0 +1,108 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package
+        run: python -m pip install -e .
+      - name: Run tests
+        run: python -m unittest discover -v
+      - name: Run deterministic search benchmark
+        run: python bench/run_eval.py --quiet --compare-golden bench/golden.json
+
+  build:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            artifact_name: cairn-linux-x64
+            archive_name: cairn-linux-x64.tar.gz
+            binary_name: cairn
+          - os: ubuntu-24.04-arm
+            artifact_name: cairn-linux-arm64
+            archive_name: cairn-linux-arm64.tar.gz
+            binary_name: cairn
+          - os: windows-latest
+            artifact_name: cairn-windows-x64
+            archive_name: cairn-windows-x64.zip
+            binary_name: cairn.exe
+          - os: macos-15-intel
+            artifact_name: cairn-macos-x64
+            archive_name: cairn-macos-x64.tar.gz
+            binary_name: cairn
+          - os: macos-15
+            artifact_name: cairn-macos-arm64
+            archive_name: cairn-macos-arm64.tar.gz
+            binary_name: cairn
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pyinstaller
+          python -m pip install -e .
+      - name: Build standalone binary
+        run: pyinstaller --onefile --name cairn src/cairn/__main__.py
+      - name: Verify standalone binary
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            ./dist/cairn.exe --version
+            ./dist/cairn.exe --help
+          else
+            ./dist/cairn --version
+            ./dist/cairn --help
+          fi
+      - name: Package Windows binary
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path release-assets | Out-Null
+          Compress-Archive -Path "dist/${{ matrix.binary_name }}" -DestinationPath "release-assets/${{ matrix.archive_name }}"
+      - name: Package Unix binary
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p release-assets
+          chmod +x "dist/${{ matrix.binary_name }}"
+          tar -czf "release-assets/${{ matrix.archive_name }}" -C dist "${{ matrix.binary_name }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: release-assets/${{ matrix.archive_name }}
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+      - name: Generate checksums
+        run: |
+          cd release-assets
+          sha256sum cairn-* > checksums.txt
+          cat checksums.txt
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
+          generate_release_notes: true

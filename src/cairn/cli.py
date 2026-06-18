@@ -4,6 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from cairn import __version__
 from cairn.profiles import list_profiles
 from cairn.vault import init_vault
 
@@ -22,6 +23,7 @@ def _read_text_input(value: str | None, file_path: str | None, use_stdin: bool) 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="cairn")
+    parser.add_argument("--version", action="version", version=f"cairn {__version__}")
     sub = parser.add_subparsers(dest="command")
 
     init = sub.add_parser("init", help="Initialize a Cairn vault.")
