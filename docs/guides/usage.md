@@ -337,7 +337,8 @@ cairn import cairn-vault.zip --path ~/restored-brain
 ```
 
 Generated index files are not included in exports. Re-run `cairn index` after
-importing.
+importing. Export aborts when common secret-like values are detected in files
+that would be included in the archive.
 
 ### `cairn setup-agent` and `cairn refresh-guides`
 

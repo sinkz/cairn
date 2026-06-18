@@ -83,6 +83,7 @@ Cairn atualmente inclui:
 - checagem de notas similares;
 - geração de guias para agentes;
 - diagnóstico, estatísticas, exportação e importação de vault;
+- bloqueio de export para vaults com segredos comuns detectáveis;
 - benchmark determinístico de busca.
 
 O runtime usa apenas a biblioteca padrão do Python.

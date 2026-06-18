@@ -98,6 +98,33 @@ class OpsTests(unittest.TestCase):
             with ZipFile(archive) as zf:
                 self.assertNotIn("vault.zip", zf.namelist())
 
+    def test_cli_export_blocks_secret_like_values_without_echoing_them(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            secret_value = "AKIAIOSFODNN7EXAMPLE"
+            (root / "knowledge" / "secret.md").write_text(
+                "---\n"
+                "type: Runbook\n"
+                "title: Secret export\n"
+                "description: Should block export.\n"
+                "tags: [bug]\n"
+                "timestamp: 2026-06-17T10:00:00Z\n"
+                "---\n\n"
+                "# Context\n\n"
+                f"Do not export AWS access key {secret_value}.\n",
+                encoding="utf-8",
+            )
+            archive = Path(tmp) / "vault.zip"
+
+            result = run_cairn(root, "export", "--output", str(archive))
+
+            self.assertEqual(result.returncode, 1)
+            self.assertFalse(archive.exists())
+            self.assertIn("potential secret", result.stderr)
+            self.assertIn("knowledge/secret.md", result.stderr)
+            self.assertNotIn(secret_value, result.stderr)
+
     def test_cli_doctor_reports_invalid_config(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

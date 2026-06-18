@@ -22,5 +22,6 @@ Initial public release.
 - Note creation and idempotent append updates.
 - Agent guide generation for Codex, Claude, OpenCode, and generic agents.
 - Vault stats, doctor, export, and import commands.
+- Export blocking when common secret-like values are detected.
 - CI, contribution guide, roadmap, and example vault.
 - Deterministic search benchmark with golden ranking checks and token metrics.

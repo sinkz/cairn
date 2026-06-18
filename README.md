@@ -81,6 +81,7 @@ Cairn currently includes:
 - similar-note checks;
 - agent guide generation;
 - vault/index doctor, stats, export, and import;
+- export blocking for vaults with common secret-like values;
 - deterministic search benchmark.
 
 The runtime uses only the Python standard library.

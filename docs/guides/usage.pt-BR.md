@@ -340,7 +340,8 @@ cairn import cairn-vault.zip --path ~/restored-brain
 ```
 
 Arquivos de índice gerados não entram no export. Rode `cairn index` depois de
-importar.
+importar. O export é abortado quando valores comuns com aparência de segredo são
+detectados em arquivos que entrariam no arquivo zip.
 
 ### `cairn setup-agent` e `cairn refresh-guides`
 
