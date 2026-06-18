@@ -15,3 +15,4 @@
 {"id":"q15","query":"stop rollout redeploy previous artifact verify original production signal announce rollback status","mode":"passages","compare_mode":"documents","budget":250}
 {"id":"q16","query":"lower checkout worker concurrency inspect slow transactions restart affected worker group connection pressure drops","mode":"passages","compare_mode":"documents","budget":250}
 {"id":"q17","query":"deploy token rotation kubernetes secret","ranker":"rrf","compare_ranker":"bm25","budget":600}
+{"id":"q18","query":"reconnecting","ranker":"rrf","compare_ranker":"bm25","budget":600}

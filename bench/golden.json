@@ -46,5 +46,8 @@
   ],
   "q17": [
     "knowledge/deploy-403.md"
+  ],
+  "q18": [
+    "knowledge/cache-reconnection.md"
   ]
 }

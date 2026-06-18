@@ -212,6 +212,31 @@ class IndexerTests(unittest.TestCase):
             self.assertEqual(default_results, [])
             self.assertEqual(fused_results[0].path, "knowledge/deploy-secret.md")
 
+    def test_rrf_search_recovers_safe_inflection_variant(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "token-rotation.md",
+                (
+                    "type: Runbook",
+                    "title: Token rotation",
+                    "description: Procedure for CI token rotation.",
+                    "tags: [deploy, security]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                    "signals: [token rotation]",
+                ),
+                "# Resolution\n\nUse the token rotation procedure and update the CI secret.\n",
+            )
+            rebuild_index(root)
+
+            default_results = search(root, "rotating", limit=3)
+            fused_results = search(root, "rotating", limit=3, ranker="rrf")
+
+            self.assertEqual(default_results, [])
+            self.assertEqual(fused_results[0].path, "knowledge/token-rotation.md")
+
     def test_metadata_only_match_returns_metadata_snippet(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

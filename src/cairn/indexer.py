@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import re
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
@@ -10,7 +9,7 @@ from typing import Sequence
 from cairn.config import is_excluded, load_config
 from cairn.frontmatter import FrontmatterError, parse_document
 from cairn.passages import split_passages
-from cairn.ranking import rrf_merge
+from cairn.ranking import fts_query, fts_query_variants, rrf_merge
 from cairn.validate import RESERVED_NAMES
 
 
@@ -50,12 +49,6 @@ class IndexStats:
 
 
 _INDEX_ERROR = "search index is missing or invalid; run `cairn index --rebuild`"
-_FTS_FIELD_PREFIX = re.compile(
-    r"\b(?:path|type|title|description|tags|extra|body|content):",
-    re.IGNORECASE,
-)
-_FTS_TOKEN = re.compile(r"\w+", re.UNICODE)
-_FTS_OPERATORS = {"AND", "OR", "NOT", "NEAR"}
 _HIGHLIGHT_START = "__CAIRN_HIGHLIGHT_START__"
 _HIGHLIGHT_END = "__CAIRN_HIGHLIGHT_END__"
 _BM25_WEIGHTS = (0.1, 1.5, 8.0, 4.0, 6.0, 6.0, 5.0, 5.0, 0.2, 3.0)
@@ -113,24 +106,6 @@ def _matches_filters(
     if any(system.casefold() not in system_set for system in system_filters):
         return False
     return True
-
-
-def _query_tokens(query: str) -> list[str]:
-    cleaned = _FTS_FIELD_PREFIX.sub(" ", query)
-    return [
-        token for token in _FTS_TOKEN.findall(cleaned)
-        if token.upper() not in _FTS_OPERATORS
-    ]
-
-
-def _fts_query(query: str) -> str:
-    tokens = _query_tokens(query)
-    return " ".join(f'"{token}"' for token in tokens)
-
-
-def _fts_or_query(query: str) -> str:
-    tokens = _query_tokens(query)
-    return " OR ".join(f'"{token}"' for token in tokens)
 
 
 def _best_snippet(content_snippet: str, body_snippet: str) -> str:
@@ -321,10 +296,7 @@ def _search_doc_rows(con: sqlite3.Connection, fts_query: str, candidate_limit: i
 
 
 def _rrf_doc_rows(con: sqlite3.Connection, query: str, candidate_limit: int) -> list[sqlite3.Row]:
-    variants = []
-    for variant in (_fts_query(query), _fts_or_query(query)):
-        if variant and variant not in variants:
-            variants.append(variant)
+    variants = fts_query_variants(query)
     runs: list[list[str]] = []
     fused: dict[str, tuple[sqlite3.Row, int, float]] = {}
     for variant in variants:
@@ -354,8 +326,8 @@ def search(
         raise ValueError("limit must be positive")
     if ranker not in {"bm25", "rrf"}:
         raise ValueError("ranker must be 'bm25' or 'rrf'")
-    fts_query = _fts_query(query)
-    if not fts_query:
+    query_text = fts_query(query)
+    if not query_text:
         return []
     db = _db_path(root)
     if not db.exists():
@@ -374,7 +346,7 @@ def search(
             rows = (
                 _rrf_doc_rows(con, query, candidate_limit)
                 if ranker == "rrf"
-                else _search_doc_rows(con, fts_query, candidate_limit)
+                else _search_doc_rows(con, query_text, candidate_limit)
             )
         except sqlite3.Error as exc:
             raise CairnIndexError(_INDEX_ERROR) from exc
@@ -412,8 +384,8 @@ def search_passages(
     root = Path(root)
     if limit <= 0:
         raise ValueError("limit must be positive")
-    fts_query = _fts_query(query)
-    if not fts_query:
+    query_text = fts_query(query)
+    if not query_text:
         return []
     db = _db_path(root)
     if not db.exists():
@@ -438,7 +410,7 @@ def search_passages(
                     _HIGHLIGHT_END,
                     _HIGHLIGHT_START,
                     _HIGHLIGHT_END,
-                    fts_query,
+                    query_text,
                     candidate_limit,
                 ),
             ).fetchall()
