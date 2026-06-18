@@ -113,6 +113,19 @@ class VocabularyTests(unittest.TestCase):
             self.assertEqual(payload["term_count"], 1)
             self.assertEqual(payload["alias_count"], 2)
 
+    def test_vocab_add_term_json_reports_term(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+
+            result = run_cairn(root, "vocab", "add-term", "Kubernetes", "--alias", "k8s", "--json")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["title"], "Kubernetes")
+            self.assertEqual(payload["aliases"], ["k8s"])
+            self.assertEqual(payload["status"], "approved")
+
     def test_vocab_add_alias_updates_existing_term(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -124,6 +137,18 @@ class VocabularyTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             glossary = (root / "glossary.md").read_text(encoding="utf-8")
             self.assertIn("aliases: k8s, kube", glossary)
+
+    def test_vocab_add_alias_json_reports_updated_aliases(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            run_cairn(root, "vocab", "add-term", "Kubernetes", "--alias", "k8s")
+
+            result = run_cairn(root, "vocab", "add-alias", "Kubernetes", "kube", "--json")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["aliases"], ["k8s", "kube"])
 
     def test_vocab_suggest_reports_candidates_without_writing_glossary(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

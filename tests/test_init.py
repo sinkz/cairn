@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import json
 import sys
 import tempfile
 import unittest
@@ -55,6 +56,22 @@ class InitVaultTests(unittest.TestCase):
             self.assertEqual(code, 0, err.getvalue())
             self.assertTrue((Path(tmp) / "AGENTS.md").exists())
             self.assertIn("created AGENTS.md", out.getvalue())
+
+    def test_cli_init_json_returns_created_and_skipped_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            out = io.StringIO()
+            err = io.StringIO()
+            with redirect_stdout(out), redirect_stderr(err):
+                try:
+                    code = main(["init", "--path", tmp, "--profile", "support", "--json"])
+                except SystemExit as exc:
+                    code = exc.code if isinstance(exc.code, int) else 1
+
+            self.assertEqual(code, 0, err.getvalue())
+            payload = json.loads(out.getvalue())
+            self.assertEqual(Path(payload["root"]), Path(tmp))
+            self.assertIn("AGENTS.md", payload["created"])
+            self.assertEqual(payload["skipped"], [])
 
 
 if __name__ == "__main__":

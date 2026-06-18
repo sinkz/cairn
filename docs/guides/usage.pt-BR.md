@@ -186,6 +186,7 @@ Gerencie o glossário com:
 ```bash
 cairn vocab add-term Kubernetes --alias k8s --alias kube --path ~/brain
 cairn vocab add-alias Kubernetes k8s-prod --path ~/brain
+cairn vocab add-term Kubernetes --alias k8s --path ~/brain --json
 cairn vocab suggest "kubernetes rollback" --path ~/brain --json
 cairn vocab validate --path ~/brain --json
 ```
@@ -202,10 +203,12 @@ Cria um novo vault.
 
 ```bash
 cairn init --path ~/brain --profile engineering
+cairn init --path ~/brain --profile engineering --json
 ```
 
 Use uma vez por vault. Rodar novamente é seguro; arquivos existentes são
 preservados.
+Com `--json`, o resultado inclui `root`, `created` e `skipped`.
 
 ### `cairn validate`
 
@@ -457,6 +460,7 @@ Gerencia o glossário determinístico no topo do vault.
 ```bash
 cairn vocab add-term Kubernetes --alias k8s --alias kube --path ~/brain
 cairn vocab add-alias Kubernetes kube --path ~/brain
+cairn vocab add-alias Kubernetes kube --path ~/brain --json
 cairn vocab suggest "kubernetes rollback" --path ~/brain --limit 5
 cairn vocab validate --path ~/brain
 ```
@@ -485,11 +489,14 @@ Exporta ou importa um arquivo zip do vault.
 ```bash
 cairn export --path ~/brain --output cairn-vault.zip
 cairn import cairn-vault.zip --path ~/restored-brain
+cairn export --path ~/brain --output cairn-vault.zip --json
+cairn import cairn-vault.zip --path ~/restored-brain --json
 ```
 
 Arquivos de índice gerados não entram no export. Rode `cairn index` depois de
 importar. O export é abortado quando valores comuns com aparência de segredo são
 detectados em arquivos que entrariam no arquivo zip.
+A saída JSON informa o caminho `output` do arquivo ou o caminho `root` importado.
 
 ### `cairn setup-agent` e `cairn refresh-guides`
 
@@ -500,6 +507,8 @@ cairn setup-agent codex --path ~/brain
 cairn setup-agent claude --path ~/brain
 cairn setup-agent opencode --path ~/brain
 cairn refresh-guides --path ~/brain
+cairn setup-agent codex --path ~/brain --json
+cairn refresh-guides --path ~/brain --json
 ```
 
 Use quando o mesmo vault deve ser consumido por diferentes harnesses de agentes.
@@ -510,6 +519,7 @@ Guias gerados orientam agentes a usar busca JSON, recuperação por passagens co
 `--ranker auto`, `cairn vocab suggest` para gaps de vocabulário, types/tags
 compatíveis com o schema, `--body-file` ou `--body-stdin` para Markdown
 multi-linha, e `validate` mais `index` depois de toda escrita bem-sucedida.
+A saída JSON informa os caminhos dos guias gerados.
 
 ## Fluxo Recomendado Para Agentes
 

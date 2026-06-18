@@ -85,6 +85,23 @@ class OpsTests(unittest.TestCase):
             self.assertTrue((target / "knowledge" / "deploy-403.md").is_file())
             self.assertFalse((target / ".cairn" / "index.db").exists())
 
+    def test_cli_export_and_import_json_report_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            source = base / "source"
+            target = base / "target"
+            archive = base / "vault.zip"
+            init_vault(source, profile_name="engineering")
+            add_note(source)
+
+            exported = run_cairn(source, "export", "--output", str(archive), "--json")
+            imported = run_cairn(source, "import", str(archive), "--path", str(target), "--json")
+
+            self.assertEqual(exported.returncode, 0, exported.stderr)
+            self.assertEqual(imported.returncode, 0, imported.stderr)
+            self.assertEqual(Path(json.loads(exported.stdout)["output"]), archive)
+            self.assertEqual(Path(json.loads(imported.stdout)["root"]), target)
+
     def test_cli_export_inside_vault_does_not_include_archive_itself(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

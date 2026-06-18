@@ -12,7 +12,7 @@
   <p>
     <img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white">
     <img alt="Runtime dependencies: zero" src="https://img.shields.io/badge/runtime_dependencies-0-2f6f4e">
-    <img alt="Regression tests: 149" src="https://img.shields.io/badge/tests-149-3b6ea8">
+    <img alt="Regression tests: 155" src="https://img.shields.io/badge/tests-155-3b6ea8">
     <img alt="Recall at 3: 1.00" src="https://img.shields.io/badge/Recall%403-1.00-2f6f4e">
     <img alt="Context reduction: 92.15%" src="https://img.shields.io/badge/context_reduction-92.15%25-8a5a44">
     <img alt="Writeback decision accuracy: 100%" src="https://img.shields.io/badge/writeback_decisions-100%25-285da8">
@@ -52,7 +52,7 @@ writeback decisions for update-vs-create workflows.
 | Comparison reduction | `53.73%` | Reduction measured in configured comparison runs. |
 | Writeback decision accuracy | `100%` | Correct create, update, no-op, and conflict decisions in the fixture set. |
 | Duplicate avoidance | `100%` | Existing reusable notes are updated or preserved instead of duplicated. |
-| Regression tests | `149` | Unit and workflow tests run before publishing the current page. |
+| Regression tests | `155` | Unit and workflow tests run before publishing the current page. |
 
 Benchmark data is also published on the website through
 [`docs/data/benchmarks.json`](docs/data/benchmarks.json).
@@ -227,7 +227,7 @@ before it is written.
 | `cairn stats` | Show vault counts and approximate token size |
 | `cairn export` / `cairn import` | Move a vault as a zip archive |
 
-Most agent-facing commands support `--json`; see the
+All operational commands support `--json` for agent workflows; see the
 [usage guide](docs/guides/usage.md) for the full contract.
 
 ## Example Vault

@@ -20,7 +20,6 @@ verified, and aligned with the project constraints.
 
 Follow `ROADMAP.md`. The current focus is:
 
-- stable JSON output for agent workflows;
 - structured retrieval packets with source provenance and budget metadata;
 - safer writeback through dry-run, no-op reasons, and conflict detection;
 - deterministic glossary aliases through top-level `glossary.md` and

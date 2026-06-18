@@ -47,6 +47,17 @@ class GuidesTests(unittest.TestCase):
             self.assertIn("cairn vocab suggest", text)
             self.assertIn("Run `cairn validate --path <vault>` and `cairn index --path <vault>` after every successful write", text)
 
+    def test_cli_setup_agent_json_reports_generated_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+
+            result = run_cairn(root, "setup-agent", "codex", "--json")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["path"], "CODEX.md")
+
     def test_cli_refresh_guides_uses_configured_generated_guides(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -63,6 +74,21 @@ class GuidesTests(unittest.TestCase):
             self.assertTrue((root / "CLAUDE.md").is_file())
             self.assertTrue((root / "OPENCODE.md").is_file())
             self.assertIn("updated CLAUDE.md", result.stdout)
+
+    def test_cli_refresh_guides_json_reports_all_generated_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            config_path = root / ".cairn" / "config.json"
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+            config["generated_guides"] = ["AGENTS.md", "CLAUDE.md"]
+            config_path.write_text(json.dumps(config), encoding="utf-8")
+
+            result = run_cairn(root, "refresh-guides", "--json")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual([item["path"] for item in payload], ["AGENTS.md", "CLAUDE.md"])
 
 
 if __name__ == "__main__":

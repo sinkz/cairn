@@ -10,6 +10,9 @@ implementation history.
   incremental and rebuildable SQLite FTS index.
 - Agent-agnostic CLI workflow: search, retrieve, show partial context, capture,
   update, validate, doctor, stats, export, and import.
+- Machine-readable `--json` output for all operational commands, including
+  vault setup, archive import/export, guide generation, writeback, validation,
+  retrieval, and glossary management.
 - Budgeted retrieval for LLM context packets, including passage-level retrieval
   for smaller prompts.
 - Deterministic search benchmark with qrels, golden checks, ranking metrics,
@@ -40,9 +43,6 @@ implementation history.
 
 ## Now
 
-- Stabilize machine-readable agent workflows with JSON output for retrieval,
-  writeback, indexing, validation, and health checks while keeping human text
-  output as the default.
 - Refactor retrieval around a structured context packet with source provenance,
   budget accounting, ranker metadata, score metadata, and text rendering derived
   from the same model.

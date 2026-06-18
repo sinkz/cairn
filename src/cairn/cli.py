@@ -24,8 +24,10 @@ def _read_text_input(value: str | None, file_path: str | None, use_stdin: bool) 
 
 
 def _json_ready(value: object) -> object:
+    if isinstance(value, Path):
+        return str(value)
     if is_dataclass(value):
-        return asdict(value)
+        return _json_ready(asdict(value))
     if isinstance(value, list):
         return [_json_ready(item) for item in value]
     if isinstance(value, tuple):
@@ -51,6 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
         default="personal",
         choices=list_profiles(),
     )
+    init.add_argument("--json", action="store_true")
 
     def add_note_parser(name: str, help_text: str) -> argparse.ArgumentParser:
         cmd = sub.add_parser(name, help=help_text)
@@ -88,10 +91,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     export_cmd = sub.add_parser("export", help="Export a vault to a zip archive.")
     export_cmd.add_argument("--output", required=True)
+    export_cmd.add_argument("--json", action="store_true")
     _add_vault_path(export_cmd)
 
     import_cmd = sub.add_parser("import", help="Import a vault zip archive.")
     import_cmd.add_argument("archive")
+    import_cmd.add_argument("--json", action="store_true")
     _add_vault_path(import_cmd)
 
     stats_cmd = sub.add_parser("stats", help="Show vault statistics.")
@@ -151,9 +156,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     setup_agent_cmd = sub.add_parser("setup-agent", help="Create an agent-specific Cairn guide.")
     setup_agent_cmd.add_argument("agent", choices=["agents", "codex", "claude", "opencode"])
+    setup_agent_cmd.add_argument("--json", action="store_true")
     _add_vault_path(setup_agent_cmd)
 
     refresh_guides_cmd = sub.add_parser("refresh-guides", help="Refresh configured agent guides.")
+    refresh_guides_cmd.add_argument("--json", action="store_true")
     _add_vault_path(refresh_guides_cmd)
 
     vocab_cmd = sub.add_parser("vocab", help="Manage the deterministic Cairn glossary.")
@@ -161,10 +168,12 @@ def build_parser() -> argparse.ArgumentParser:
     vocab_add = vocab_sub.add_parser("add-term", help="Add or update an approved glossary term.")
     vocab_add.add_argument("term")
     vocab_add.add_argument("--alias", action="append", default=[])
+    vocab_add.add_argument("--json", action="store_true")
     _add_vault_path(vocab_add)
     vocab_alias = vocab_sub.add_parser("add-alias", help="Add an alias to an approved glossary term.")
     vocab_alias.add_argument("term")
     vocab_alias.add_argument("alias")
+    vocab_alias.add_argument("--json", action="store_true")
     _add_vault_path(vocab_alias)
     vocab_suggest = vocab_sub.add_parser("suggest", help="Suggest glossary aliases from a query and the local vault.")
     vocab_suggest.add_argument("query")
@@ -185,10 +194,13 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "init":
         result = init_vault(Path(args.path), profile_name=args.profile)
-        for item in result.created:
-            print(f"created {item}")
-        for item in result.skipped:
-            print(f"skipped {item}")
+        if args.json:
+            _print_json(result)
+        else:
+            for item in result.created:
+                print(f"created {item}")
+            for item in result.skipped:
+                print(f"skipped {item}")
         return 0
     if args.command in {"add", "capture"}:
         from cairn.notes import NotePolicyError, create_note, note_policy_payload
@@ -261,7 +273,10 @@ def main(argv: list[str] | None = None) -> int:
         except (OSError, ValueError) as exc:
             print(f"ERROR {exc}", file=sys.stderr)
             return 1
-        print(f"exported {output}")
+        if args.json:
+            _print_json({"output": output})
+        else:
+            print(f"exported {output}")
         return 0
     if args.command == "import":
         from cairn.archive import import_vault
@@ -271,7 +286,10 @@ def main(argv: list[str] | None = None) -> int:
         except (OSError, ValueError) as exc:
             print(f"ERROR {exc}", file=sys.stderr)
             return 1
-        print(f"imported {root}")
+        if args.json:
+            _print_json({"root": root})
+        else:
+            print(f"imported {root}")
         return 0
     if args.command == "stats":
         from cairn.stats import collect_stats, render_stats
@@ -320,13 +338,20 @@ def main(argv: list[str] | None = None) -> int:
         except ValueError as exc:
             print(f"ERROR {exc}", file=sys.stderr)
             return 1
-        print(f"updated {result.path}")
+        if args.json:
+            _print_json(result)
+        else:
+            print(f"updated {result.path}")
         return 0
     if args.command == "refresh-guides":
         from cairn.guides import refresh_guides
 
-        for result in refresh_guides(Path(args.path)):
-            print(f"updated {result.path}")
+        results = refresh_guides(Path(args.path))
+        if args.json:
+            _print_json(results)
+        else:
+            for result in results:
+                print(f"updated {result.path}")
         return 0
     if args.command == "vocab":
         from cairn.vocabulary import add_alias, add_term, suggest_terms, validate_terms
@@ -337,7 +362,10 @@ def main(argv: list[str] | None = None) -> int:
             except ValueError as exc:
                 print(f"ERROR {exc}", file=sys.stderr)
                 return 1
-            print(f"updated glossary.md :: {term.title}")
+            if args.json:
+                _print_json(term)
+            else:
+                print(f"updated glossary.md :: {term.title}")
             return 0
         if args.vocab_command == "add-alias":
             try:
@@ -345,7 +373,10 @@ def main(argv: list[str] | None = None) -> int:
             except ValueError as exc:
                 print(f"ERROR {exc}", file=sys.stderr)
                 return 1
-            print(f"updated glossary.md :: {term.title}")
+            if args.json:
+                _print_json(term)
+            else:
+                print(f"updated glossary.md :: {term.title}")
             return 0
         if args.vocab_command == "suggest":
             if args.limit <= 0:

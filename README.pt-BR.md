@@ -12,7 +12,7 @@
   <p>
     <img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white">
     <img alt="Dependências de runtime: zero" src="https://img.shields.io/badge/dependencias_runtime-0-2f6f4e">
-    <img alt="Testes de regressão: 149" src="https://img.shields.io/badge/testes-149-3b6ea8">
+    <img alt="Testes de regressão: 155" src="https://img.shields.io/badge/testes-155-3b6ea8">
     <img alt="Recall at 3: 1.00" src="https://img.shields.io/badge/Recall%403-1.00-2f6f4e">
     <img alt="Redução de contexto: 92.15%" src="https://img.shields.io/badge/reducao_contexto-92.15%25-8a5a44">
     <img alt="Acurácia de decisão de escrita: 100%" src="https://img.shields.io/badge/escrita_decisoes-100%25-285da8">
@@ -53,7 +53,7 @@ atualizar vs criar.
 | Redução em comparativos | `53.73%` | Redução medida nas rodadas comparativas configuradas. |
 | Acurácia de decisão de escrita | `100%` | Decisões corretas de criar, atualizar, no-op e conflito no conjunto de fixtures. |
 | Prevenção de duplicatas | `100%` | Notas reutilizáveis existentes são atualizadas ou preservadas em vez de duplicadas. |
-| Testes de regressão | `149` | Testes unitários e de workflow rodados antes da publicação atual. |
+| Testes de regressão | `155` | Testes unitários e de workflow rodados antes da publicação atual. |
 
 Os dados do benchmark também são publicados no site por
 [`docs/data/benchmarks.json`](docs/data/benchmarks.json).
@@ -230,8 +230,8 @@ de segredo antes da escrita.
 | `cairn stats` | Mostra contagens e tamanho aproximado em tokens |
 | `cairn export` / `cairn import` | Move um vault como arquivo zip |
 
-A maioria dos comandos usados por agentes suporta `--json`; veja o
-[guia de uso](docs/guides/usage.pt-BR.md) para o contrato completo.
+Todos os comandos operacionais suportam `--json` para fluxos com agentes; veja
+o [guia de uso](docs/guides/usage.pt-BR.md) para o contrato completo.
 
 ## Vault De Exemplo
 

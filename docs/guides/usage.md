@@ -184,6 +184,7 @@ Manage the glossary with:
 ```bash
 cairn vocab add-term Kubernetes --alias k8s --alias kube --path ~/brain
 cairn vocab add-alias Kubernetes k8s-prod --path ~/brain
+cairn vocab add-term Kubernetes --alias k8s --path ~/brain --json
 cairn vocab suggest "kubernetes rollback" --path ~/brain --json
 cairn vocab validate --path ~/brain --json
 ```
@@ -200,9 +201,11 @@ Creates a new vault.
 
 ```bash
 cairn init --path ~/brain --profile engineering
+cairn init --path ~/brain --profile engineering --json
 ```
 
 Use this once per vault. Running it again is safe; existing files are skipped.
+With `--json`, the result includes `root`, `created`, and `skipped`.
 
 ### `cairn validate`
 
@@ -453,6 +456,7 @@ Manages the top-level deterministic glossary.
 ```bash
 cairn vocab add-term Kubernetes --alias k8s --alias kube --path ~/brain
 cairn vocab add-alias Kubernetes kube --path ~/brain
+cairn vocab add-alias Kubernetes kube --path ~/brain --json
 cairn vocab suggest "kubernetes rollback" --path ~/brain --limit 5
 cairn vocab validate --path ~/brain
 ```
@@ -479,11 +483,14 @@ Exports or imports a vault zip archive.
 ```bash
 cairn export --path ~/brain --output cairn-vault.zip
 cairn import cairn-vault.zip --path ~/restored-brain
+cairn export --path ~/brain --output cairn-vault.zip --json
+cairn import cairn-vault.zip --path ~/restored-brain --json
 ```
 
 Generated index files are not included in exports. Re-run `cairn index` after
 importing. Export aborts when common secret-like values are detected in files
 that would be included in the archive.
+JSON output reports the archive `output` path or imported `root` path.
 
 ### `cairn setup-agent` and `cairn refresh-guides`
 
@@ -494,6 +501,8 @@ cairn setup-agent codex --path ~/brain
 cairn setup-agent claude --path ~/brain
 cairn setup-agent opencode --path ~/brain
 cairn refresh-guides --path ~/brain
+cairn setup-agent codex --path ~/brain --json
+cairn refresh-guides --path ~/brain --json
 ```
 
 Use these when a vault should be consumed by different agent harnesses. Cairn is
@@ -503,6 +512,7 @@ Generated guides tell agents to use JSON search, passage retrieval with
 `--ranker auto`, `cairn vocab suggest` for vocabulary gaps, schema-compatible
 types/tags, `--body-file` or `--body-stdin` for multi-line Markdown, and
 `validate` plus `index` after every successful write.
+JSON output reports generated guide paths.
 
 ## Recommended Agent Workflow
 
