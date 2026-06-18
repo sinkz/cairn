@@ -18,18 +18,18 @@ class DoctorReport:
 def _index_lines(root: Path) -> tuple[bool, list[str]]:
     db = _db_path(root)
     if not db.exists():
-        return False, ["ERROR index missing; run `cairn index --rebuild`"]
+        return False, ["ERROR index missing; run `apollokairn index --rebuild`"]
     try:
         con = sqlite3.connect(db)
     except sqlite3.Error:
-        return False, ["ERROR index invalid; run `cairn index --rebuild`"]
+        return False, ["ERROR index invalid; run `apollokairn index --rebuild`"]
     try:
         try:
             if not _has_current_schema(con):
-                return False, ["ERROR index invalid; run `cairn index --rebuild`"]
+                return False, ["ERROR index invalid; run `apollokairn index --rebuild`"]
             rows = con.execute("SELECT path, mtime_ns, size, sha256 FROM index_meta").fetchall()
         except sqlite3.Error:
-            return False, ["ERROR index invalid; run `cairn index --rebuild`"]
+            return False, ["ERROR index invalid; run `apollokairn index --rebuild`"]
     finally:
         con.close()
 
@@ -46,7 +46,7 @@ def _index_lines(root: Path) -> tuple[bool, list[str]]:
             changed += 1
     if missing or removed or changed:
         return False, [
-            f"STALE index: changed {changed}, missing {missing}, removed {removed}; run `cairn index`"
+            f"STALE index: changed {changed}, missing {missing}, removed {removed}; run `apollokairn index`"
         ]
     return True, ["OK index fresh"]
 

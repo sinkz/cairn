@@ -367,7 +367,7 @@ class IndexerTests(unittest.TestCase):
             root = Path(tmp)
             init_vault(root, profile_name="personal")
 
-            with self.assertRaisesRegex(Exception, "cairn index|rebuild"):
+            with self.assertRaisesRegex(Exception, "apollokairn index|rebuild"):
                 search(root, "anything", limit=3)
 
     def test_index_path_directory_raises_index_error(self) -> None:
@@ -407,7 +407,7 @@ class IndexerTests(unittest.TestCase):
 
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(result.stdout, "")
-            self.assertIn("cairn index --rebuild", result.stderr)
+            self.assertIn("apollokairn index --rebuild", result.stderr)
             self.assertNotIn("Traceback", result.stderr)
 
     def test_cli_index_path_directory_returns_concise_error(self) -> None:
@@ -420,7 +420,7 @@ class IndexerTests(unittest.TestCase):
 
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(result.stdout, "")
-            self.assertIn("cairn index --rebuild", result.stderr)
+            self.assertIn("apollokairn index --rebuild", result.stderr)
             self.assertNotIn("Traceback", result.stderr)
 
     def test_cli_index_corrupt_index_file_returns_concise_error(self) -> None:
@@ -433,7 +433,7 @@ class IndexerTests(unittest.TestCase):
 
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(result.stdout, "")
-            self.assertIn("cairn index --rebuild", result.stderr)
+            self.assertIn("apollokairn index --rebuild", result.stderr)
             self.assertNotIn("Traceback", result.stderr)
 
     def test_cli_index_path_rebuilds_vault_from_outside_directory(self) -> None:
@@ -548,7 +548,7 @@ class IndexerTests(unittest.TestCase):
 
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(result.stdout, "")
-            self.assertIn("cairn index --rebuild", result.stderr)
+            self.assertIn("apollokairn index --rebuild", result.stderr)
             self.assertNotIn("Traceback", result.stderr)
 
     def test_cli_search_json_returns_metadata_without_full_body(self) -> None:

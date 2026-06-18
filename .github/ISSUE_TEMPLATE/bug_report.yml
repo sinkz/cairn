@@ -16,8 +16,8 @@ body:
       label: Reproduction
       description: Include commands, fixture shape, and expected vs actual output.
       placeholder: |
-        cairn init --path PATH_TO_VAULT --profile engineering
-        cairn index --path PATH_TO_VAULT --rebuild
+        apollokairn init --path PATH_TO_VAULT --profile engineering
+        apollokairn index --path PATH_TO_VAULT --rebuild
     validations:
       required: true
   - type: input

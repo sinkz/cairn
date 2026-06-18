@@ -49,7 +49,7 @@ class IndexStats:
     skipped: int = 0
 
 
-_INDEX_ERROR = "search index is missing or invalid; run `cairn index --rebuild`"
+_INDEX_ERROR = "search index is missing or invalid; run `apollokairn index --rebuild`"
 _HIGHLIGHT_START = "__CAIRN_HIGHLIGHT_START__"
 _HIGHLIGHT_END = "__CAIRN_HIGHLIGHT_END__"
 _BM25_WEIGHTS = (0.1, 1.5, 8.0, 4.0, 6.0, 6.0, 5.0, 5.0, 0.2, 3.0)
