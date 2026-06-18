@@ -26,3 +26,6 @@ Profile: `benchmark`
 - mobile
 - duplicate
 - cache
+- product
+- access
+- library

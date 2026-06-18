@@ -100,6 +100,9 @@ Consensus:
   compare token usage between document and passage retrieval on the same topic.
 - Added an opt-in document `rrf` ranker and benchmark `ranker` /
   `compare_ranker` support to measure it against the default `bm25` baseline.
+- Added benchmark `category` labels and expanded coverage for alias-heavy
+  queries, multilingual retrieval, RRF with filters, role workflows, access
+  processes, and library decisions.
 - Added lightweight SimHash-style fingerprint fallback for `cairn similar` so
   duplicate checks can find near matches even when strict lexical search misses.
 - Added an agent workflow test that captures, indexes, searches, retrieves,
@@ -108,14 +111,14 @@ Consensus:
 Current benchmark result:
 
 ```text
-topics: 17
+topics: 24
 limit: 3
 mean_recall_at_3: 1.0
 mean_mrr_at_3: 1.0
-mean_ndcg_at_3: 0.9902
-full_context_tokens: 38726
-returned_tokens: 4044
-context_reduction: 0.8956
+mean_ndcg_at_3: 0.9931
+full_context_tokens: 69960
+returned_tokens: 5482
+context_reduction: 0.9216
 comparison_topics: 5
 comparison_candidate_tokens: 521
 comparison_baseline_tokens: 1126
@@ -146,6 +149,10 @@ The first RRF benchmark topic covers a noisy query with one extra unrelated term
 `deploy token rotation kubernetes secret`. The default `bm25` baseline returns no
 documents, while opt-in `rrf` returns `knowledge/deploy-403.md` at rank 1 and
 preserves `Recall@3 = 1.0` for that topic.
+
+The categorized benchmark now also guards alias lookup, PT-BR accent-insensitive
+retrieval, RRF combined with filters, PO/support backlog workflows, production
+access processes, and library/formatting decisions.
 
 ## Next Experiments
 

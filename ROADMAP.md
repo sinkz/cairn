@@ -6,7 +6,7 @@ local-first workflows, and agent interoperability.
 
 ## Current Focus
 
-- Deterministic search benchmarks with fixed fixtures, queries, qrels, and token metrics.
+- Categorized deterministic search benchmarks with fixed fixtures, queries, qrels, golden checks, and token metrics.
 - Passage-based retrieval with measurable context reduction.
 - Experimental RRF ranking for documents and passages measured against BM25 without changing the default.
 - Secret-safety checks for validation, retrieval, and export.
@@ -18,14 +18,12 @@ Detailed execution plan: [Cairn Search Optimization Implementation Plan](docs/su
 
 ## Next
 
-- Broader passage-vs-document benchmark coverage across recurring workflows.
-- Broader RRF benchmark coverage across aliases, multilingual terms, and team workflows.
 - Optional package/plugin adapters for Codex, Claude, GitHub Copilot, and OpenCode.
+- Team-oriented review workflows for shared vault changes.
 
 ## Later
 
 - Optional embedding backend behind a strict integration boundary.
-- Team-oriented review workflows for shared vault changes.
 - UI or TUI for browsing and curating notes.
 - Importers from Obsidian-style vaults and existing Markdown knowledge bases.
 

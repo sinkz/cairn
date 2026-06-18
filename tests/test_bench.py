@@ -80,6 +80,31 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(rrf_topic["compare"]["ranker"], "bm25")
         self.assertEqual(rrf_topic["compare"]["recall_at_k"], 0.0)
 
+    def test_benchmark_tracks_required_quality_categories(self) -> None:
+        result = run_bench()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        categories = {item.get("category") for item in payload["per_topic"]}
+        self.assertNotIn(None, categories)
+        self.assertTrue(
+            {
+                "exact_error",
+                "filters",
+                "passage_budget",
+                "rrf_extra_terms",
+                "rrf_inflection",
+                "rrf_passage",
+                "alias",
+                "multilingual",
+                "rrf_filter",
+                "role_workflow",
+                "access",
+                "library",
+            }.issubset(categories),
+            categories,
+        )
+
     def test_benchmark_applies_topic_filters(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp)

@@ -385,10 +385,11 @@ python bench/run_eval.py
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 ```
 
-Benchmark topics may include `mode`, `compare_mode`, `ranker`, and
+Benchmark topics may include `category`, `mode`, `compare_mode`, `ranker`, and
 `compare_ranker` fields. This lets Cairn measure whether `passages` reduce
-returned tokens against `documents`, and whether experimental rankers improve
-quality against the default `bm25` baseline. The benchmark output includes a
-`comparison` summary for token-reduction comparisons.
+returned tokens against `documents`, whether experimental rankers improve
+quality against the default `bm25` baseline, and which workflow class each topic
+protects. The benchmark output includes a `comparison` summary for
+token-reduction comparisons.
 
 The runtime uses only the Python standard library.

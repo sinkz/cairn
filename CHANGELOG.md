@@ -25,4 +25,4 @@ Initial public release.
 - Vault stats, doctor, export, and import commands.
 - Export blocking when common secret-like values are detected.
 - CI, contribution guide, roadmap, and example vault.
-- Deterministic search benchmark with golden ranking checks and token metrics.
+- Categorized deterministic search benchmark with golden ranking checks and token metrics.

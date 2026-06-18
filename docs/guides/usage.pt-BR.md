@@ -390,10 +390,10 @@ python bench/run_eval.py
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 ```
 
-Tópicos do benchmark podem incluir `mode`, `compare_mode`, `ranker` e
-`compare_ranker`. Isso permite medir se `passages` reduz tokens contra
-`documents`, e se rankers experimentais melhoram qualidade contra a linha de
-base `bm25`. A saída do benchmark inclui um resumo `comparison` para
-comparações de redução de tokens.
+Tópicos do benchmark podem incluir `category`, `mode`, `compare_mode`, `ranker`
+e `compare_ranker`. Isso permite medir se `passages` reduz tokens contra
+`documents`, se rankers experimentais melhoram qualidade contra a linha de base
+`bm25`, e qual classe de workflow cada tópico protege. A saída do benchmark
+inclui um resumo `comparison` para comparações de redução de tokens.
 
 O runtime usa apenas a biblioteca padrão do Python.

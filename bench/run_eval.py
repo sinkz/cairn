@@ -23,6 +23,7 @@ class Topic:
     id: str
     query: str
     budget: int
+    category: str = "general"
     limit: int | None = None
     type_filter: str | None = None
     tag_filters: tuple[str, ...] = ()
@@ -52,6 +53,7 @@ def load_topics(path: Path) -> list[Topic]:
                 id=row["id"],
                 query=row["query"],
                 budget=int(row.get("budget", 600)),
+                category=row.get("category", "general") if isinstance(row.get("category", "general"), str) else "general",
                 limit=int(row["limit"]) if "limit" in row else None,
                 type_filter=row.get("type") if isinstance(row.get("type"), str) else None,
                 tag_filters=_string_list(row.get("tag")),
@@ -161,6 +163,7 @@ def evaluate_topic(root: Path, topic: Topic, relevant: dict[str, int], default_l
     out: dict[str, object] = {
         "id": topic.id,
         "query": topic.query,
+        "category": topic.category,
         "mode": topic.mode,
         "ranker": topic.ranker,
         "limit": limit,

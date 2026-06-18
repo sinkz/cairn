@@ -1,19 +1,24 @@
-{"id":"q1","query":"deploy 403 token rotation","budget":600}
-{"id":"q2","query":"jwt expired clock skew auth","budget":600}
-{"id":"q3","query":"support escalation sla blocked customer","budget":600}
-{"id":"q4","query":"sqlite fts local search embeddings optional","budget":600}
-{"id":"q5","query":"autenticacao renovacao sessao suporte","budget":600}
-{"id":"q6","query":"ERR_DB_POOL_EXHAUSTED checkout","budget":600}
-{"id":"q7","query":"login token refresh session cookie rotation","budget":600}
-{"id":"q8","query":"deploy 403 mobile token rotation","system":["mobile"],"budget":600}
-{"id":"q9","query":"current session store decision redis postgres","type":"Decision","budget":600}
-{"id":"q10","query":"consolidated deploy forbidden token duplicate","budget":600}
-{"id":"q11","query":"hotfix release rollback production","type":"Process","budget":600}
-{"id":"q12","query":"update ci secret failed deploy job rotation release log","mode":"passages","compare_mode":"documents","budget":250}
-{"id":"q13","query":"fix ntp synchronization validation leeway rotate affected sessions clocks stable","mode":"passages","compare_mode":"documents","budget":250}
-{"id":"q14","query":"capture customer impact reproduction logs screenshots assign owning team severity customer facing update support owner","mode":"passages","compare_mode":"documents","budget":250}
-{"id":"q15","query":"stop rollout redeploy previous artifact verify original production signal announce rollback status","mode":"passages","compare_mode":"documents","budget":250}
-{"id":"q16","query":"lower checkout worker concurrency inspect slow transactions restart affected worker group connection pressure drops","mode":"passages","compare_mode":"documents","budget":250}
-{"id":"q17","query":"deploy token rotation kubernetes secret","ranker":"rrf","compare_ranker":"bm25","budget":600}
-{"id":"q18","query":"reconnecting","ranker":"rrf","compare_ranker":"bm25","budget":600}
-{"id":"q19","query":"reconnecting","mode":"passages","ranker":"rrf","compare_ranker":"bm25","limit":1,"budget":250}
+{"id":"q1","query":"deploy 403 token rotation","category":"exact_error","budget":600}
+{"id":"q2","query":"jwt expired clock skew auth","category":"exact_error","budget":600}
+{"id":"q3","query":"support escalation sla blocked customer","category":"role_workflow","budget":600}
+{"id":"q4","query":"sqlite fts local search embeddings optional","category":"library","budget":600}
+{"id":"q5","query":"autenticacao renovacao sessao suporte","category":"multilingual","budget":600}
+{"id":"q6","query":"ERR_DB_POOL_EXHAUSTED checkout","category":"exact_error","budget":600}
+{"id":"q7","query":"login token refresh session cookie rotation","category":"exact_error","budget":600}
+{"id":"q8","query":"deploy 403 mobile token rotation","category":"filters","system":["mobile"],"budget":600}
+{"id":"q9","query":"current session store decision redis postgres","category":"filters","type":"Decision","budget":600}
+{"id":"q10","query":"consolidated deploy forbidden token duplicate","category":"duplicates","budget":600}
+{"id":"q11","query":"hotfix release rollback production","category":"filters","type":"Process","budget":600}
+{"id":"q12","query":"update ci secret failed deploy job rotation release log","category":"passage_budget","mode":"passages","compare_mode":"documents","budget":250}
+{"id":"q13","query":"fix ntp synchronization validation leeway rotate affected sessions clocks stable","category":"passage_budget","mode":"passages","compare_mode":"documents","budget":250}
+{"id":"q14","query":"capture customer impact reproduction logs screenshots assign owning team severity customer facing update support owner","category":"passage_budget","mode":"passages","compare_mode":"documents","budget":250}
+{"id":"q15","query":"stop rollout redeploy previous artifact verify original production signal announce rollback status","category":"passage_budget","mode":"passages","compare_mode":"documents","budget":250}
+{"id":"q16","query":"lower checkout worker concurrency inspect slow transactions restart affected worker group connection pressure drops","category":"passage_budget","mode":"passages","compare_mode":"documents","budget":250}
+{"id":"q17","query":"deploy token rotation kubernetes secret","category":"rrf_extra_terms","ranker":"rrf","compare_ranker":"bm25","budget":600}
+{"id":"q18","query":"reconnecting","category":"rrf_inflection","ranker":"rrf","compare_ranker":"bm25","budget":600}
+{"id":"q19","query":"reconnecting","category":"rrf_passage","mode":"passages","ranker":"rrf","compare_ranker":"bm25","limit":1,"budget":250}
+{"id":"q20","query":"release denied workspace access","category":"alias","budget":600}
+{"id":"q21","query":"deploy token rotation kubernetes secret","category":"rrf_filter","ranker":"rrf","compare_ranker":"bm25","system":["ci"],"limit":1,"budget":600}
+{"id":"q22","query":"po prioritize support backlog blocked customer severity","category":"role_workflow","type":"Process","budget":600}
+{"id":"q23","query":"request production access approval owner audit log","category":"access","type":"Process","budget":600}
+{"id":"q24","query":"ruff formatting python lint library standard","category":"library","type":"Decision","budget":600}

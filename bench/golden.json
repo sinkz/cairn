@@ -52,5 +52,20 @@
   ],
   "q19": [
     "knowledge/cache-reconnection.md"
+  ],
+  "q20": [
+    "knowledge/deploy-403.md"
+  ],
+  "q21": [
+    "knowledge/deploy-403.md"
+  ],
+  "q22": [
+    "processes/backlog-triage.md"
+  ],
+  "q23": [
+    "processes/production-access-request.md"
+  ],
+  "q24": [
+    "decisions/use-ruff-formatting.md"
   ]
 }
