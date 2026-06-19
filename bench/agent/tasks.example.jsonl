@@ -1,0 +1,2 @@
+{"id":"deploy_403_token_rotation","query_id":"q1","question":"deploy 403 token rotation","expected_paths":["knowledge/deploy-403.md"],"expected_facts":["CI secret","failed deploy job","release log"],"expect_abstention":false,"slice":"exact","budget":800}
+{"id":"no_answer_constellation_payroll","question":"constellation payroll zephyr banana","expected_paths":[],"expected_facts":[],"expect_abstention":true,"slice":"no_answer","budget":400}

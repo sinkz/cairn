@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-18",
+  "updated_at": "2026-06-19",
   "suites": [
     {
       "id": "retrieval",
@@ -38,7 +38,7 @@
               "direction": "flat",
               "trend": "flat",
               "baseline_date": "2026-06-18",
-              "baseline_label": "BM25 + passages + RRF fallback"
+              "baseline_label": "BM25 + glossary aliases"
             }
           },
           {
@@ -59,7 +59,7 @@
               "direction": "flat",
               "trend": "flat",
               "baseline_date": "2026-06-18",
-              "baseline_label": "BM25 + passages + RRF fallback"
+              "baseline_label": "BM25 + glossary aliases"
             }
           },
           {
@@ -76,11 +76,11 @@
               "pt": "Qualidade de ranking contra rótulos determinísticos de relevância."
             },
             "delta": {
-              "value": 0.001,
-              "direction": "up",
-              "trend": "better",
+              "value": 0.0,
+              "direction": "flat",
+              "trend": "flat",
               "baseline_date": "2026-06-18",
-              "baseline_label": "BM25 + passages + RRF fallback"
+              "baseline_label": "BM25 + glossary aliases"
             }
           },
           {
@@ -97,11 +97,11 @@
               "pt": "Recuperação por passagens retorna muito menos texto que abrir documentos completos."
             },
             "delta": {
-              "value": -0.0033,
-              "direction": "down",
-              "trend": "worse",
+              "value": 0.0,
+              "direction": "flat",
+              "trend": "flat",
               "baseline_date": "2026-06-18",
-              "baseline_label": "BM25 + passages + RRF fallback"
+              "baseline_label": "BM25 + glossary aliases"
             }
           },
           {
@@ -122,7 +122,7 @@
               "direction": "flat",
               "trend": "flat",
               "baseline_date": "2026-06-18",
-              "baseline_label": "BM25 + passages + RRF fallback"
+              "baseline_label": "BM25 + glossary aliases"
             }
           }
         ]
@@ -144,6 +144,15 @@
         },
         {
           "date": "2026-06-18",
+          "label": "BM25 + glossary aliases",
+          "recall_at_3": 1.0,
+          "mrr_at_3": 1.0,
+          "ndcg_at_3": 0.9941,
+          "context_reduction": 0.9183,
+          "comparison_reduction": 0.5373
+        },
+        {
+          "date": "2026-06-19",
           "label": "BM25 + glossary aliases",
           "recall_at_3": 1.0,
           "mrr_at_3": 1.0,
@@ -184,6 +193,13 @@
             "description": {
               "en": "Correct create, update, no-op, and conflict decisions.",
               "pt": "Decisões corretas de criar, atualizar, no-op e conflito."
+            },
+            "delta": {
+              "value": 0.0,
+              "direction": "flat",
+              "trend": "flat",
+              "baseline_date": "2026-06-18",
+              "baseline_label": "similarity-threshold-v1"
             }
           },
           {
@@ -198,6 +214,13 @@
             "description": {
               "en": "Update/no-op/conflict cases selected the expected existing note.",
               "pt": "Casos de update/no-op/conflito escolheram a nota existente esperada."
+            },
+            "delta": {
+              "value": 0.0,
+              "direction": "flat",
+              "trend": "flat",
+              "baseline_date": "2026-06-18",
+              "baseline_label": "similarity-threshold-v1"
             }
           },
           {
@@ -212,6 +235,13 @@
             "description": {
               "en": "Repeated knowledge stayed idempotent and did not rewrite the note.",
               "pt": "Conhecimento repetido permaneceu idempotente e não reescreveu a nota."
+            },
+            "delta": {
+              "value": 0.0,
+              "direction": "flat",
+              "trend": "flat",
+              "baseline_date": "2026-06-18",
+              "baseline_label": "similarity-threshold-v1"
             }
           },
           {
@@ -226,6 +256,13 @@
             "description": {
               "en": "Stale SHA-256 writes were blocked before appending content.",
               "pt": "Escritas com SHA-256 obsoleto foram bloqueadas antes de adicionar conteúdo."
+            },
+            "delta": {
+              "value": 0.0,
+              "direction": "flat",
+              "trend": "flat",
+              "baseline_date": "2026-06-18",
+              "baseline_label": "similarity-threshold-v1"
             }
           },
           {
@@ -240,6 +277,13 @@
             "description": {
               "en": "Existing reusable notes were updated or preserved instead of duplicated.",
               "pt": "Notas reutilizáveis existentes foram atualizadas ou preservadas em vez de duplicadas."
+            },
+            "delta": {
+              "value": 0.0,
+              "direction": "flat",
+              "trend": "flat",
+              "baseline_date": "2026-06-18",
+              "baseline_label": "similarity-threshold-v1"
             }
           },
           {
@@ -254,6 +298,13 @@
             "description": {
               "en": "Deterministic cases across bugs, processes, decisions, personal notes, and PT-BR content.",
               "pt": "Casos determinísticos em bugs, processos, decisões, notas pessoais e conteúdo PT-BR."
+            },
+            "delta": {
+              "value": 0,
+              "direction": "flat",
+              "trend": "flat",
+              "baseline_date": "2026-06-18",
+              "baseline_label": "similarity-threshold-v1"
             }
           }
         ]
@@ -266,6 +317,16 @@
       "history": [
         {
           "date": "2026-06-18",
+          "label": "similarity-threshold-v1",
+          "decision_accuracy": 1.0,
+          "target_path_accuracy": 1.0,
+          "noop_accuracy": 1.0,
+          "conflict_detection_rate": 1.0,
+          "duplicate_avoidance_rate": 1.0,
+          "writeback_cases": 11
+        },
+        {
+          "date": "2026-06-19",
           "label": "similarity-threshold-v1",
           "decision_accuracy": 1.0,
           "target_path_accuracy": 1.0,
@@ -301,7 +362,7 @@
           "direction": "flat",
           "trend": "flat",
           "baseline_date": "2026-06-18",
-          "baseline_label": "BM25 + passages + RRF fallback"
+          "baseline_label": "BM25 + glossary aliases"
         }
       },
       {
@@ -322,7 +383,7 @@
           "direction": "flat",
           "trend": "flat",
           "baseline_date": "2026-06-18",
-          "baseline_label": "BM25 + passages + RRF fallback"
+          "baseline_label": "BM25 + glossary aliases"
         }
       },
       {
@@ -339,11 +400,11 @@
           "pt": "Qualidade de ranking contra rótulos determinísticos de relevância."
         },
         "delta": {
-          "value": 0.001,
-          "direction": "up",
-          "trend": "better",
+          "value": 0.0,
+          "direction": "flat",
+          "trend": "flat",
           "baseline_date": "2026-06-18",
-          "baseline_label": "BM25 + passages + RRF fallback"
+          "baseline_label": "BM25 + glossary aliases"
         }
       },
       {
@@ -360,11 +421,11 @@
           "pt": "Recuperação por passagens retorna muito menos texto que abrir documentos completos."
         },
         "delta": {
-          "value": -0.0033,
-          "direction": "down",
-          "trend": "worse",
+          "value": 0.0,
+          "direction": "flat",
+          "trend": "flat",
           "baseline_date": "2026-06-18",
-          "baseline_label": "BM25 + passages + RRF fallback"
+          "baseline_label": "BM25 + glossary aliases"
         }
       },
       {
@@ -385,7 +446,7 @@
           "direction": "flat",
           "trend": "flat",
           "baseline_date": "2026-06-18",
-          "baseline_label": "BM25 + passages + RRF fallback"
+          "baseline_label": "BM25 + glossary aliases"
         }
       },
       {
@@ -394,7 +455,7 @@
           "en": "Regression tests",
           "pt": "Testes de regressão"
         },
-        "value": 200,
+        "value": 205,
         "format": "integer",
         "precision": 0,
         "description": {
@@ -427,6 +488,15 @@
     },
     {
       "date": "2026-06-18",
+      "label": "BM25 + glossary aliases",
+      "recall_at_3": 1.0,
+      "mrr_at_3": 1.0,
+      "ndcg_at_3": 0.9941,
+      "context_reduction": 0.9183,
+      "comparison_reduction": 0.5373
+    },
+    {
+      "date": "2026-06-19",
       "label": "BM25 + glossary aliases",
       "recall_at_3": 1.0,
       "mrr_at_3": 1.0,
