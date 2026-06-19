@@ -117,8 +117,12 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(public_metrics["comparison_reduction"], payload["comparison"]["token_reduction"])
         self.assertEqual(retrieval["current"]["corpus"], payload["corpus"])
         self.assertEqual(retrieval["current"]["slice_metrics"], payload["slice_metrics"])
+        self.assertEqual(retrieval["current"]["quality"], payload["quality"])
+        self.assertEqual(retrieval["current"]["efficiency"], payload["efficiency"])
         self.assertEqual(data["current"]["corpus"], payload["corpus"])
         self.assertEqual(data["current"]["slice_metrics"], payload["slice_metrics"])
+        self.assertEqual(data["current"]["quality"], payload["quality"])
+        self.assertEqual(data["current"]["efficiency"], payload["efficiency"])
 
     def test_benchmark_outputs_quality_and_token_metrics_for_harder_suite(self) -> None:
         result = run_bench()
@@ -130,6 +134,12 @@ class BenchTests(unittest.TestCase):
         self.assertIn("mean_ndcg_at_k", payload)
         self.assertIn("returned_tokens", payload)
         self.assertIn("context_reduction", payload)
+        self.assertEqual(payload["quality"]["mean_recall_at_k"], payload["mean_recall_at_k"])
+        self.assertEqual(payload["quality"]["mean_mrr_at_k"], payload["mean_mrr_at_k"])
+        self.assertEqual(payload["quality"]["mean_ndcg_at_k"], payload["mean_ndcg_at_k"])
+        self.assertEqual(payload["efficiency"]["returned_tokens"], payload["returned_tokens"])
+        self.assertEqual(payload["efficiency"]["context_reduction"], payload["context_reduction"])
+        self.assertEqual(payload["efficiency"]["budget_compliance_rate"], 1.0)
         self.assertIn("slice_metrics", payload)
         self.assertGreaterEqual(payload["topics"], 10)
         metrics_by_slice = {item["slice"]: item for item in payload["slice_metrics"]}

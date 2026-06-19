@@ -378,7 +378,19 @@
             "budget_compliance_rate": 1.0,
             "false_positive_rate": 0.0
           }
-        ]
+        ],
+        "quality": {
+          "limit": 3,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 0.9941
+        },
+        "efficiency": {
+          "full_context_tokens": 87136,
+          "returned_tokens": 7122,
+          "context_reduction": 0.9183,
+          "budget_compliance_rate": 1.0
+        }
       },
       "history_metrics": [
         "recall_at_3",
@@ -664,7 +676,19 @@
               "budget_compliance_rate": 1.0,
               "false_positive_rate": 0.0
             }
-          ]
+          ],
+          "quality": {
+            "limit": 3,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 0.9941
+          },
+          "efficiency": {
+            "full_context_tokens": 87136,
+            "returned_tokens": 7122,
+            "context_reduction": 0.9183,
+            "budget_compliance_rate": 1.0
+          }
         }
       ]
     },
@@ -1222,7 +1246,19 @@
         "budget_compliance_rate": 1.0,
         "false_positive_rate": 0.0
       }
-    ]
+    ],
+    "quality": {
+      "limit": 3,
+      "mean_recall_at_k": 1.0,
+      "mean_mrr_at_k": 1.0,
+      "mean_ndcg_at_k": 0.9941
+    },
+    "efficiency": {
+      "full_context_tokens": 87136,
+      "returned_tokens": 7122,
+      "context_reduction": 0.9183,
+      "budget_compliance_rate": 1.0
+    }
   },
   "suite": {
     "name": {
@@ -1514,7 +1550,19 @@
           "budget_compliance_rate": 1.0,
           "false_positive_rate": 0.0
         }
-      ]
+      ],
+      "quality": {
+        "limit": 3,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 0.9941
+      },
+      "efficiency": {
+        "full_context_tokens": 87136,
+        "returned_tokens": 7122,
+        "context_reduction": 0.9183,
+        "budget_compliance_rate": 1.0
+      }
     }
   ],
   "planned_comparisons": [

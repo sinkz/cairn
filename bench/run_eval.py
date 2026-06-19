@@ -465,6 +465,15 @@ def main(argv: list[str] | None = None) -> int:
             if comparison_baseline_tokens
             else 0
         )
+        context_reduction = (
+            round(1 - (returned_tokens / full_context_tokens), 4)
+            if full_context_tokens
+            else 0
+        )
+        budget_compliance_rate = round(
+            sum(1 for item in per_topic if bool(item["within_budget"])) / len(per_topic),
+            4,
+        )
         output = {
             "topics": len(topics),
             "limit": args.limit,
@@ -474,9 +483,19 @@ def main(argv: list[str] | None = None) -> int:
             "mean_ndcg_at_k": round(mean_ndcg, 4),
             "full_context_tokens": full_context_tokens,
             "returned_tokens": returned_tokens,
-            "context_reduction": round(1 - (returned_tokens / full_context_tokens), 4)
-            if full_context_tokens
-            else 0,
+            "context_reduction": context_reduction,
+            "quality": {
+                "limit": args.limit,
+                "mean_recall_at_k": round(mean_recall, 4),
+                "mean_mrr_at_k": round(mean_mrr, 4),
+                "mean_ndcg_at_k": round(mean_ndcg, 4),
+            },
+            "efficiency": {
+                "full_context_tokens": full_context_tokens,
+                "returned_tokens": returned_tokens,
+                "context_reduction": context_reduction,
+                "budget_compliance_rate": budget_compliance_rate,
+            },
             "comparison": {
                 "topics": len(compared),
                 "candidate_tokens": comparison_candidate_tokens,

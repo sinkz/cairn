@@ -71,14 +71,20 @@ class PublishMetricsTests(unittest.TestCase):
             self.assertEqual(corpus["qrel_rows"], 31)
             self.assertIn("slice_metrics", retrieval["current"])
             self.assertTrue(any(row["slice"] == "passage_budget" for row in retrieval["current"]["slice_metrics"]))
+            self.assertEqual(retrieval["current"]["quality"]["mean_ndcg_at_k"], 0.9941)
+            self.assertEqual(retrieval["current"]["efficiency"]["context_reduction"], 0.9183)
             self.assertEqual(data["current"]["corpus"], corpus)
             self.assertEqual(data["current"]["slice_metrics"], retrieval["current"]["slice_metrics"])
+            self.assertEqual(data["current"]["quality"], retrieval["current"]["quality"])
+            self.assertEqual(data["current"]["efficiency"], retrieval["current"]["efficiency"])
             retrieval_row = next(
                 row for row in retrieval["history"]
                 if row["date"] == "2026-06-18" and row["label"] == "BM25 + glossary aliases"
             )
             self.assertEqual(retrieval_row["corpus"]["positive_qrels"], 31)
             self.assertEqual(retrieval_row["slice_metrics"], retrieval["current"]["slice_metrics"])
+            self.assertEqual(retrieval_row["quality"], retrieval["current"]["quality"])
+            self.assertEqual(retrieval_row["efficiency"], retrieval["current"]["efficiency"])
             legacy_row = next(
                 row for row in data["history"]
                 if row["date"] == "2026-06-18" and row["label"] == "BM25 + glossary aliases"
