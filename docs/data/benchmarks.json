@@ -125,7 +125,54 @@
               "baseline_label": "BM25 + glossary aliases"
             }
           }
-        ]
+        ],
+        "corpus": {
+          "markdown_files": 25,
+          "topics": 28,
+          "qrel_rows": 31,
+          "positive_qrels": 31,
+          "answerable_topics": 28,
+          "no_answer_topics": 0,
+          "mean_positive_qrels_per_answerable_topic": 1.1071,
+          "slices": [
+            "access",
+            "alias",
+            "duplicates",
+            "exact_error",
+            "filters",
+            "library",
+            "multilingual",
+            "passage_budget",
+            "role_workflow",
+            "rrf_extra_terms",
+            "rrf_filter",
+            "rrf_inflection",
+            "rrf_passage",
+            "same_problem_synonyms",
+            "support_access_synonyms",
+            "tooling_abbreviation",
+            "vocabulary"
+          ],
+          "topics_by_slice": {
+            "access": 1,
+            "alias": 1,
+            "duplicates": 1,
+            "exact_error": 4,
+            "filters": 3,
+            "library": 2,
+            "multilingual": 1,
+            "passage_budget": 5,
+            "role_workflow": 2,
+            "rrf_extra_terms": 1,
+            "rrf_filter": 1,
+            "rrf_inflection": 1,
+            "rrf_passage": 1,
+            "same_problem_synonyms": 1,
+            "support_access_synonyms": 1,
+            "tooling_abbreviation": 1,
+            "vocabulary": 1
+          }
+        }
       },
       "history_metrics": [
         "recall_at_3",
@@ -158,7 +205,54 @@
           "mrr_at_3": 1.0,
           "ndcg_at_3": 0.9941,
           "context_reduction": 0.9183,
-          "comparison_reduction": 0.5373
+          "comparison_reduction": 0.5373,
+          "corpus": {
+            "markdown_files": 25,
+            "topics": 28,
+            "qrel_rows": 31,
+            "positive_qrels": 31,
+            "answerable_topics": 28,
+            "no_answer_topics": 0,
+            "mean_positive_qrels_per_answerable_topic": 1.1071,
+            "slices": [
+              "access",
+              "alias",
+              "duplicates",
+              "exact_error",
+              "filters",
+              "library",
+              "multilingual",
+              "passage_budget",
+              "role_workflow",
+              "rrf_extra_terms",
+              "rrf_filter",
+              "rrf_inflection",
+              "rrf_passage",
+              "same_problem_synonyms",
+              "support_access_synonyms",
+              "tooling_abbreviation",
+              "vocabulary"
+            ],
+            "topics_by_slice": {
+              "access": 1,
+              "alias": 1,
+              "duplicates": 1,
+              "exact_error": 4,
+              "filters": 3,
+              "library": 2,
+              "multilingual": 1,
+              "passage_budget": 5,
+              "role_workflow": 2,
+              "rrf_extra_terms": 1,
+              "rrf_filter": 1,
+              "rrf_inflection": 1,
+              "rrf_passage": 1,
+              "same_problem_synonyms": 1,
+              "support_access_synonyms": 1,
+              "tooling_abbreviation": 1,
+              "vocabulary": 1
+            }
+          }
         }
       ]
     },
@@ -455,7 +549,7 @@
           "en": "Regression tests",
           "pt": "Testes de regressão"
         },
-        "value": 208,
+        "value": 210,
         "format": "integer",
         "precision": 0,
         "description": {
@@ -463,7 +557,54 @@
           "pt": "Testes unitários e de workflow rodados antes desta publicação."
         }
       }
-    ]
+    ],
+    "corpus": {
+      "markdown_files": 25,
+      "topics": 28,
+      "qrel_rows": 31,
+      "positive_qrels": 31,
+      "answerable_topics": 28,
+      "no_answer_topics": 0,
+      "mean_positive_qrels_per_answerable_topic": 1.1071,
+      "slices": [
+        "access",
+        "alias",
+        "duplicates",
+        "exact_error",
+        "filters",
+        "library",
+        "multilingual",
+        "passage_budget",
+        "role_workflow",
+        "rrf_extra_terms",
+        "rrf_filter",
+        "rrf_inflection",
+        "rrf_passage",
+        "same_problem_synonyms",
+        "support_access_synonyms",
+        "tooling_abbreviation",
+        "vocabulary"
+      ],
+      "topics_by_slice": {
+        "access": 1,
+        "alias": 1,
+        "duplicates": 1,
+        "exact_error": 4,
+        "filters": 3,
+        "library": 2,
+        "multilingual": 1,
+        "passage_budget": 5,
+        "role_workflow": 2,
+        "rrf_extra_terms": 1,
+        "rrf_filter": 1,
+        "rrf_inflection": 1,
+        "rrf_passage": 1,
+        "same_problem_synonyms": 1,
+        "support_access_synonyms": 1,
+        "tooling_abbreviation": 1,
+        "vocabulary": 1
+      }
+    }
   },
   "suite": {
     "name": {
@@ -502,7 +643,54 @@
       "mrr_at_3": 1.0,
       "ndcg_at_3": 0.9941,
       "context_reduction": 0.9183,
-      "comparison_reduction": 0.5373
+      "comparison_reduction": 0.5373,
+      "corpus": {
+        "markdown_files": 25,
+        "topics": 28,
+        "qrel_rows": 31,
+        "positive_qrels": 31,
+        "answerable_topics": 28,
+        "no_answer_topics": 0,
+        "mean_positive_qrels_per_answerable_topic": 1.1071,
+        "slices": [
+          "access",
+          "alias",
+          "duplicates",
+          "exact_error",
+          "filters",
+          "library",
+          "multilingual",
+          "passage_budget",
+          "role_workflow",
+          "rrf_extra_terms",
+          "rrf_filter",
+          "rrf_inflection",
+          "rrf_passage",
+          "same_problem_synonyms",
+          "support_access_synonyms",
+          "tooling_abbreviation",
+          "vocabulary"
+        ],
+        "topics_by_slice": {
+          "access": 1,
+          "alias": 1,
+          "duplicates": 1,
+          "exact_error": 4,
+          "filters": 3,
+          "library": 2,
+          "multilingual": 1,
+          "passage_budget": 5,
+          "role_workflow": 2,
+          "rrf_extra_terms": 1,
+          "rrf_filter": 1,
+          "rrf_inflection": 1,
+          "rrf_passage": 1,
+          "same_problem_synonyms": 1,
+          "support_access_synonyms": 1,
+          "tooling_abbreviation": 1,
+          "vocabulary": 1
+        }
+      }
     }
   ],
   "planned_comparisons": [

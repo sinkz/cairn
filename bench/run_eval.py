@@ -312,6 +312,42 @@ def corpus_tokens(root: Path) -> int:
     return total
 
 
+def corpus_metadata(root: Path, topics: Sequence[Topic], qrels: dict[str, dict[str, int]]) -> dict[str, object]:
+    markdown_files = [
+        path for path in root.rglob("*.md")
+        if ".cairn" not in path.relative_to(root).parts
+    ]
+    answerable_topics = [topic for topic in topics if topic.category != "no_answer"]
+    positive_relevance_counts = [
+        sum(1 for rel in qrels.get(topic.id, {}).values() if rel > 0)
+        for topic in answerable_topics
+    ]
+    topics_by_category: dict[str, int] = {}
+    for topic in topics:
+        topics_by_category[topic.category] = topics_by_category.get(topic.category, 0) + 1
+    positive_qrels = sum(
+        1 for docs in qrels.values() for rel in docs.values()
+        if rel > 0
+    )
+    qrel_rows = sum(len(docs) for docs in qrels.values())
+    mean_positive = (
+        sum(positive_relevance_counts) / len(positive_relevance_counts)
+        if positive_relevance_counts
+        else 0.0
+    )
+    return {
+        "markdown_files": len(markdown_files),
+        "topics": len(topics),
+        "qrel_rows": qrel_rows,
+        "positive_qrels": positive_qrels,
+        "answerable_topics": len(answerable_topics),
+        "no_answer_topics": len(topics) - len(answerable_topics),
+        "mean_positive_qrels_per_answerable_topic": round(mean_positive, 4),
+        "slices": sorted(topics_by_category),
+        "topics_by_slice": dict(sorted(topics_by_category.items())),
+    }
+
+
 def run_map(per_topic: Sequence[dict[str, object]]) -> dict[str, list[str]]:
     return {str(item["id"]): list(item["docs"]) for item in per_topic}
 
@@ -386,6 +422,7 @@ def main(argv: list[str] | None = None) -> int:
         output = {
             "topics": len(topics),
             "limit": args.limit,
+            "corpus": corpus_metadata(root, topics, qrels),
             "mean_recall_at_k": round(mean_recall, 4),
             "mean_mrr_at_k": round(mean_mrr, 4),
             "mean_ndcg_at_k": round(mean_ndcg, 4),

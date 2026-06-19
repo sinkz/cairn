@@ -65,6 +65,21 @@ class PublishMetricsTests(unittest.TestCase):
             self.assertEqual(metrics["ndcg_at_3"]["delta"]["direction"], "up")
             self.assertEqual(metrics["ndcg_at_3"]["delta"]["trend"], "better")
             self.assertEqual(metrics["context_reduction"]["delta"]["direction"], "down")
+            corpus = retrieval["current"]["corpus"]
+            self.assertEqual(corpus["markdown_files"], 25)
+            self.assertEqual(corpus["topics"], 28)
+            self.assertEqual(corpus["qrel_rows"], 31)
+            self.assertEqual(data["current"]["corpus"], corpus)
+            retrieval_row = next(
+                row for row in retrieval["history"]
+                if row["date"] == "2026-06-18" and row["label"] == "BM25 + glossary aliases"
+            )
+            self.assertEqual(retrieval_row["corpus"]["positive_qrels"], 31)
+            legacy_row = next(
+                row for row in data["history"]
+                if row["date"] == "2026-06-18" and row["label"] == "BM25 + glossary aliases"
+            )
+            self.assertEqual(legacy_row["corpus"], retrieval_row["corpus"])
 
             writeback = next(suite for suite in data["suites"] if suite["id"] == "writeback")
             writeback_metrics = {metric["id"]: metric["value"] for metric in writeback["current"]["metrics"]}

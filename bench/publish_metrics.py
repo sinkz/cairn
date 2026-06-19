@@ -121,8 +121,11 @@ def _update_retrieval(suite: dict[str, Any], payload: dict[str, Any], run_date: 
     suite.setdefault("suite", {})
     suite["suite"]["command"] = RETRIEVAL_COMMAND
     suite.setdefault("history_metrics", DEFAULT_HISTORY_METRICS["retrieval"])
+    corpus = deepcopy(payload["corpus"])
 
-    metrics = suite.setdefault("current", {}).setdefault("metrics", [])
+    current = suite.setdefault("current", {})
+    current["corpus"] = corpus
+    metrics = current.setdefault("metrics", [])
     _set_metric(metrics, "recall_at_3", payload["mean_recall_at_k"])
     _set_metric(metrics, "mrr_at_3", payload["mean_mrr_at_k"])
     _set_metric(metrics, "ndcg_at_3", payload["mean_ndcg_at_k"])
@@ -137,6 +140,7 @@ def _update_retrieval(suite: dict[str, Any], payload: dict[str, Any], run_date: 
         "ndcg_at_3": payload["mean_ndcg_at_k"],
         "context_reduction": payload["context_reduction"],
         "comparison_reduction": payload["comparison"]["token_reduction"],
+        "corpus": corpus,
     }
     history_index = _upsert_history(suite.setdefault("history", []), row)
     _add_deltas(suite, history_index)

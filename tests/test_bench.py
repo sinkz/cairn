@@ -115,6 +115,8 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(public_metrics["ndcg_at_3"], payload["mean_ndcg_at_k"])
         self.assertEqual(public_metrics["context_reduction"], payload["context_reduction"])
         self.assertEqual(public_metrics["comparison_reduction"], payload["comparison"]["token_reduction"])
+        self.assertEqual(retrieval["current"]["corpus"], payload["corpus"])
+        self.assertEqual(data["current"]["corpus"], payload["corpus"])
 
     def test_benchmark_outputs_quality_and_token_metrics_for_harder_suite(self) -> None:
         result = run_bench()
@@ -151,6 +153,51 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(rrf_topic["recall_at_k"], 1.0)
         self.assertEqual(rrf_topic["compare"]["ranker"], "bm25")
         self.assertEqual(rrf_topic["compare"]["recall_at_k"], 0.0)
+
+    def test_benchmark_reports_corpus_metadata(self) -> None:
+        result = run_bench()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        corpus = payload["corpus"]
+        self.assertEqual(corpus["markdown_files"], 25)
+        self.assertEqual(corpus["topics"], 28)
+        self.assertEqual(corpus["qrel_rows"], 31)
+        self.assertEqual(corpus["positive_qrels"], 31)
+        self.assertEqual(corpus["answerable_topics"], 28)
+        self.assertEqual(corpus["no_answer_topics"], 0)
+        self.assertEqual(corpus["mean_positive_qrels_per_answerable_topic"], 1.1071)
+        self.assertIn("role_workflow", corpus["slices"])
+        self.assertEqual(corpus["topics_by_slice"]["passage_budget"], 5)
+
+    def test_benchmark_metadata_allows_no_answer_topics_without_qrels(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            topics = base / "topics.jsonl"
+            topics.write_text(
+                '{"id":"q_no_answer","query":"constellation payroll zephyr banana","category":"no_answer","budget":400}\n',
+                encoding="utf-8",
+            )
+            qrels = base / "qrels.tsv"
+            qrels.write_text("", encoding="utf-8")
+
+            result = run_bench(
+                "--topics",
+                str(topics),
+                "--qrels",
+                str(qrels),
+                "--min-mrr",
+                "0",
+                "--min-ndcg",
+                "0",
+            )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        corpus = json.loads(result.stdout)["corpus"]
+        self.assertEqual(corpus["topics"], 1)
+        self.assertEqual(corpus["answerable_topics"], 0)
+        self.assertEqual(corpus["no_answer_topics"], 1)
+        self.assertEqual(corpus["qrel_rows"], 0)
 
     def test_benchmark_tracks_required_quality_categories(self) -> None:
         result = run_bench()
