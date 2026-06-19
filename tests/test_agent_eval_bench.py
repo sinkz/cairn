@@ -114,6 +114,44 @@ class AgentEvalBenchTests(unittest.TestCase):
         self.assertIn("context_sufficiency=1.0", result.stdout)
         self.assertIn("abstention_accuracy=1.0", result.stdout)
 
+    def test_agent_eval_dry_run_validates_large_tasks(self) -> None:
+        result = run_agent_eval(
+            "--dry-run",
+            "--fixture",
+            "bench/fixtures/vault-large",
+            "--tasks",
+            "bench/agent/tasks-large.jsonl",
+            "--topics",
+            "bench/topics-large.jsonl",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["tasks"], 80)
+        self.assertIn("no_answer", payload["slices"])
+        self.assertIn("cross_doc", payload["slices"])
+
+    def test_agent_eval_mock_large_tasks_checks_context_sufficiency(self) -> None:
+        result = run_agent_eval(
+            "--mock",
+            "--fixture",
+            "bench/fixtures/vault-large",
+            "--tasks",
+            "bench/agent/tasks-large.jsonl",
+            "--topics",
+            "bench/topics-large.jsonl",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["tasks"], 80)
+        self.assertEqual(payload["context_sufficiency_rate"], 1.0)
+        self.assertEqual(payload["source_path_accuracy"], 1.0)
+        self.assertEqual(payload["abstention_accuracy"], 1.0)
+        no_answer_tasks = [item for item in payload["per_task"] if item["expect_abstention"]]
+        self.assertGreaterEqual(len(no_answer_tasks), 4)
+        self.assertTrue(all(item["source_paths"] == [] for item in no_answer_tasks))
+
 
 if __name__ == "__main__":
     unittest.main()

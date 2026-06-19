@@ -12,7 +12,7 @@
   <p>
     <img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white">
     <img alt="Runtime dependencies: zero" src="https://img.shields.io/badge/runtime_dependencies-0-2f6f4e">
-    <img alt="Regression tests: 213" src="https://img.shields.io/badge/tests-213-3b6ea8">
+    <img alt="Regression tests: 215" src="https://img.shields.io/badge/tests-215-3b6ea8">
     <img alt="Recall at 3: 1.00" src="https://img.shields.io/badge/Recall%403-1.00-2f6f4e">
     <img alt="Context reduction: 91.83%" src="https://img.shields.io/badge/context_reduction-91.83%25-8a5a44">
     <img alt="Writeback decision accuracy: 100%" src="https://img.shields.io/badge/writeback_decisions-100%25-285da8">
@@ -52,7 +52,7 @@ writeback decisions for update-vs-create workflows.
 | Comparison reduction | `53.73%` | Reduction measured in configured comparison runs. |
 | Writeback decision accuracy | `100%` | Correct create, update, no-op, and conflict decisions in the fixture set. |
 | Duplicate avoidance | `100%` | Existing reusable notes are updated or preserved instead of duplicated. |
-| Regression tests | `213` | Unit and workflow tests run before publishing the current page. |
+| Regression tests | `215` | Unit and workflow tests run before publishing the current page. |
 
 Benchmark data is also published on the website through
 [`docs/data/benchmarks.json`](docs/data/benchmarks.json).
@@ -60,7 +60,7 @@ Benchmark data is also published on the website through
 ```bash
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 213
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 215
 ```
 
 ## Quick Install
@@ -323,7 +323,7 @@ Run the deterministic benchmarks:
 ```bash
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 213
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 215
 ```
 
 The benchmarks check ranking quality, golden result prefixes, token budgets,

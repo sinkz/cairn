@@ -1,8 +1,8 @@
-{"budget": 700, "category": "no_answer", "id": "q_large_001", "query": "unmapped constellation payroll zephyr 001"}
-{"budget": 700, "category": "no_answer", "id": "q_large_002", "query": "unmapped constellation payroll zephyr 002"}
-{"budget": 700, "category": "no_answer", "id": "q_large_003", "query": "unmapped constellation payroll zephyr 003"}
-{"budget": 700, "category": "no_answer", "id": "q_large_004", "query": "unmapped constellation payroll zephyr 004"}
-{"budget": 700, "category": "no_answer", "id": "q_large_005", "query": "unmapped constellation payroll zephyr 005"}
+{"budget": 700, "category": "no_answer", "id": "q_large_001", "query": "unmapped constellation payroll zephyr"}
+{"budget": 700, "category": "no_answer", "id": "q_large_002", "query": "unmapped constellation payroll zephyr"}
+{"budget": 700, "category": "no_answer", "id": "q_large_003", "query": "unmapped constellation payroll zephyr"}
+{"budget": 700, "category": "no_answer", "id": "q_large_004", "query": "unmapped constellation payroll zephyr"}
+{"budget": 700, "category": "no_answer", "id": "q_large_005", "query": "unmapped constellation payroll zephyr"}
 {"budget": 700, "category": "exact_error", "id": "q_large_006", "query": "deployment drift artifact skew rollback"}
 {"budget": 700, "category": "exact_error", "id": "q_large_007", "query": "deployment saturation artifact pressure rollback"}
 {"budget": 700, "category": "exact_error", "id": "q_large_008", "query": "deployment mismatch artifact inconsistent rollback"}

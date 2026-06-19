@@ -13,6 +13,7 @@ VAULT = ROOT / "bench" / "fixtures" / "vault-large"
 TOPICS = ROOT / "bench" / "topics-large.jsonl"
 QRELS = ROOT / "bench" / "qrels-large.tsv"
 GOLDEN = ROOT / "bench" / "golden-large.json"
+TASKS = ROOT / "bench" / "agent" / "tasks-large.jsonl"
 
 
 DOMAINS = [
@@ -76,7 +77,7 @@ class Case:
         if self.category == "filtered":
             return f"{area} {signal} {symptom} {action}"
         if self.category == "no_answer":
-            return f"unmapped constellation payroll zephyr {self.index:03d}"
+            return "unmapped constellation payroll zephyr"
         return f"{area} {code} {signal} {symptom} {action}"
 
     @property
@@ -293,6 +294,54 @@ def _write_topics_and_qrels(cases: list[Case]) -> None:
             qrels.write(f"{case.id}\treferences/{case.stem}-reference.md\t1\n")
 
 
+def _agent_task(case: Case) -> dict[str, object]:
+    keyword, area, _system, _signal, action = case.domain
+    _code, symptom, phrase = case.symptom
+    task: dict[str, object] = {
+        "id": f"task_{case.id.removeprefix('q_')}",
+        "query_id": case.id,
+        "question": case.query,
+        "slice": case.category,
+        "budget": case.topic["budget"],
+        "expected_paths": [],
+        "expected_facts": [],
+        "expect_abstention": case.category == "no_answer",
+    }
+    if case.category == "no_answer":
+        return task
+
+    expected_paths = [f"knowledge/{case.stem}-runbook.md"]
+    expected_facts = [phrase, f"{action} recovery playbook", "diagnosis resolution checklist"]
+    if case.category == "cross_doc":
+        task["budget"] = 1200
+        expected_paths = [
+            f"knowledge/{case.stem}-runbook.md",
+            f"decisions/{case.stem}-decision.md",
+            f"references/{case.stem}-reference.md",
+        ]
+        expected_facts = ["Cross-document lookup", "decision record", "reference facts"]
+    elif case.category == "passage_budget":
+        expected_facts = [f"{action} recovery playbook", "diagnosis resolution checklist"]
+        task["mode"] = "passages"
+    elif case.category == "noisy_query":
+        task["ranker"] = "rrf"
+    elif case.category == "filtered":
+        task["type"] = "Runbook"
+        task["system"] = keyword
+
+    task["expected_paths"] = expected_paths
+    task["expected_facts"] = expected_facts
+    task["expect_abstention"] = False
+    return task
+
+
+def _write_agent_tasks(cases: list[Case]) -> None:
+    TASKS.parent.mkdir(parents=True, exist_ok=True)
+    with TASKS.open("w", encoding="utf-8", newline="\n") as handle:
+        for case in cases:
+            handle.write(json.dumps(_agent_task(case), ensure_ascii=False, sort_keys=True) + "\n")
+
+
 def _write_golden() -> None:
     result = subprocess.run(
         [
@@ -327,12 +376,14 @@ def main() -> int:
     cases = _cases()
     _generate_vault(cases)
     _write_topics_and_qrels(cases)
+    _write_agent_tasks(cases)
     _write_golden()
     print(
         "generated large fixture "
         f"notes={len(list(VAULT.rglob('*.md')))} "
         f"topics={len(cases)} "
-        f"qrels={sum(1 for line in QRELS.read_text(encoding='utf-8').splitlines() if line.strip())}"
+        f"qrels={sum(1 for line in QRELS.read_text(encoding='utf-8').splitlines() if line.strip())} "
+        f"tasks={sum(1 for line in TASKS.read_text(encoding='utf-8').splitlines() if line.strip())}"
     )
     return 0
 

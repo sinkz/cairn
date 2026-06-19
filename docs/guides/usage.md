@@ -667,7 +667,7 @@ Run deterministic evaluations:
 python bench/run_eval.py
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 213
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 215
 ```
 
 Benchmark topics may include `category`, `mode`, `compare_mode`, `ranker`, and

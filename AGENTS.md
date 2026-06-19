@@ -76,7 +76,7 @@ work is done:
 python -m unittest discover
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 213
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 215
 git diff --check
 ```
 
@@ -113,7 +113,7 @@ writeback regressions:
 ```bash
 python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 213
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 215
 ```
 
 When benchmark numbers change intentionally, update:
