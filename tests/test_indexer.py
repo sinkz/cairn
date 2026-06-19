@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -371,6 +372,59 @@ class IndexerTests(unittest.TestCase):
             with self.assertRaisesRegex(Exception, "apollokairn index|rebuild"):
                 search(root, "anything", limit=3)
 
+    def test_search_incomplete_index_schema_raises_index_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            write_concept(
+                root,
+                "note.md",
+                (
+                    "type: Note",
+                    "title: Needle",
+                    "description: schemaneedle.",
+                    "tags: [personal]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+            )
+            rebuild_index(root)
+            con = sqlite3.connect(root / ".cairn" / "index.db")
+            try:
+                con.execute("DROP TABLE index_meta")
+                con.commit()
+            finally:
+                con.close()
+
+            with self.assertRaises(CairnIndexError):
+                search(root, "schemaneedle", limit=3)
+
+    def test_search_passages_incomplete_index_schema_raises_index_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            write_concept(
+                root,
+                "note.md",
+                (
+                    "type: Note",
+                    "title: Needle",
+                    "description: schemaneedle.",
+                    "tags: [personal]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\nschemapassage.\n",
+            )
+            rebuild_index(root)
+            con = sqlite3.connect(root / ".cairn" / "index.db")
+            try:
+                con.execute("DROP TABLE index_meta")
+                con.commit()
+            finally:
+                con.close()
+
+            with self.assertRaises(CairnIndexError):
+                search_passages(root, "schemapassage", limit=3)
+
     def test_index_path_directory_raises_index_error(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -574,6 +628,35 @@ class IndexerTests(unittest.TestCase):
             self.assertEqual([result.path for result in results], ["knowledge/note.md"])
             self.assertEqual(search(root, "oldneedle", limit=3), [])
 
+    def test_search_repairs_changed_document_with_same_mtime_and_size(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            concept = write_concept(
+                root,
+                "note.md",
+                (
+                    "type: Note",
+                    "title: Oldneedle",
+                    "description: oldneedle.",
+                    "tags: [personal]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\noldneedle.\n",
+            )
+            rebuild_index(root)
+            original_stat = concept.stat()
+            old_text = concept.read_text(encoding="utf-8")
+            new_text = old_text.replace("Oldneedle", "Newneedle").replace("oldneedle", "newneedle")
+            concept.write_text(new_text, encoding="utf-8")
+            self.assertEqual(concept.stat().st_size, original_stat.st_size)
+            os.utime(concept, ns=(original_stat.st_atime_ns, original_stat.st_mtime_ns))
+
+            results = search(root, "newneedle", limit=3)
+
+            self.assertEqual([result.path for result in results], ["knowledge/note.md"])
+            self.assertEqual(search(root, "oldneedle", limit=3), [])
+
     def test_search_repairs_new_document_before_query(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -663,6 +746,36 @@ class IndexerTests(unittest.TestCase):
 
             self.assertEqual([result.path for result in results], ["knowledge/deploy.md"])
             self.assertIn("newpassage", results[0].text)
+
+    def test_search_passages_repairs_changed_document_with_same_mtime_and_size(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            concept = write_concept(
+                root,
+                "deploy.md",
+                (
+                    "type: Runbook",
+                    "title: Deploy",
+                    "description: Old deploy note.",
+                    "tags: [deploy]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Resolution\n\noldpassage only.\n",
+            )
+            rebuild_index(root)
+            original_stat = concept.stat()
+            old_text = concept.read_text(encoding="utf-8")
+            new_text = old_text.replace("Old deploy", "New deploy").replace("oldpassage", "newpassage")
+            concept.write_text(new_text, encoding="utf-8")
+            self.assertEqual(concept.stat().st_size, original_stat.st_size)
+            os.utime(concept, ns=(original_stat.st_atime_ns, original_stat.st_mtime_ns))
+
+            results = search_passages(root, "newpassage", limit=3)
+
+            self.assertEqual([result.path for result in results], ["knowledge/deploy.md"])
+            self.assertIn("newpassage", results[0].text)
+            self.assertEqual(search_passages(root, "oldpassage", limit=3), [])
 
     def test_cli_search_missing_index_returns_concise_error(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

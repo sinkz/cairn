@@ -154,13 +154,6 @@ def _file_signature(path: Path) -> tuple[int, int, str]:
     return stat.st_mtime_ns, stat.st_size, digest
 
 
-def _same_mtime_size(path: Path, row: tuple[int, int, str] | sqlite3.Row | None) -> bool:
-    if row is None:
-        return False
-    stat = path.stat()
-    return row[0] == stat.st_mtime_ns and row[1] == stat.st_size
-
-
 def _delete_doc(con: sqlite3.Connection, rel: str) -> None:
     con.execute("DELETE FROM docs WHERE path = ?", (rel,))
     con.execute("DELETE FROM passages WHERE path = ?", (rel,))
@@ -262,9 +255,6 @@ def sync_index(root: Path, rebuild: bool = False) -> IndexStats:
             for path in paths:
                 rel = path.relative_to(root).as_posix()
                 row = indexed.get(rel)
-                if _same_mtime_size(path, row):
-                    skipped += 1
-                    continue
                 mtime_ns, size, sha256 = _file_signature(path)
                 if row == (mtime_ns, size, sha256):
                     skipped += 1
@@ -289,18 +279,20 @@ def rebuild_index(root: Path) -> None:
 def repair_stale_index(root: Path) -> IndexStats | None:
     root = Path(root)
     db = _db_path(root)
-    if not db.exists() or not db.is_file():
+    if not db.exists():
         return None
+    if not db.is_file():
+        raise CairnIndexError(_INDEX_ERROR)
     try:
         con = sqlite3.connect(db)
     except sqlite3.Error:
-        return None
+        raise CairnIndexError(_INDEX_ERROR)
     try:
         try:
             if not _has_current_schema(con):
-                return None
-        except sqlite3.Error:
-            return None
+                raise CairnIndexError(_INDEX_ERROR)
+        except sqlite3.Error as exc:
+            raise CairnIndexError(_INDEX_ERROR) from exc
     finally:
         con.close()
     return sync_index(root)
