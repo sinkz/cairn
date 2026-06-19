@@ -69,12 +69,16 @@ class PublishMetricsTests(unittest.TestCase):
             self.assertEqual(corpus["markdown_files"], 25)
             self.assertEqual(corpus["topics"], 28)
             self.assertEqual(corpus["qrel_rows"], 31)
+            self.assertIn("slice_metrics", retrieval["current"])
+            self.assertTrue(any(row["slice"] == "passage_budget" for row in retrieval["current"]["slice_metrics"]))
             self.assertEqual(data["current"]["corpus"], corpus)
+            self.assertEqual(data["current"]["slice_metrics"], retrieval["current"]["slice_metrics"])
             retrieval_row = next(
                 row for row in retrieval["history"]
                 if row["date"] == "2026-06-18" and row["label"] == "BM25 + glossary aliases"
             )
             self.assertEqual(retrieval_row["corpus"]["positive_qrels"], 31)
+            self.assertEqual(retrieval_row["slice_metrics"], retrieval["current"]["slice_metrics"])
             legacy_row = next(
                 row for row in data["history"]
                 if row["date"] == "2026-06-18" and row["label"] == "BM25 + glossary aliases"

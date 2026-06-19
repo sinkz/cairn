@@ -109,6 +109,26 @@ class LargeBenchmarkTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("bench ok", result.stdout)
 
+    def test_large_fixture_reports_slice_metrics(self) -> None:
+        result = run_bench(
+            "--fixture",
+            str(VAULT),
+            "--topics",
+            str(TOPICS),
+            "--qrels",
+            str(QRELS),
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        metrics = {row["slice"]: row for row in payload["slice_metrics"]}
+        self.assertEqual(metrics["no_answer"]["topics"], 5)
+        self.assertEqual(metrics["no_answer"]["false_positive_rate"], 0.0)
+        self.assertEqual(metrics["paraphrase"]["topics"], 10)
+        self.assertEqual(metrics["role_workflow"]["topics"], 10)
+        self.assertEqual(metrics["cross_doc"]["topics"], 10)
+        self.assertGreaterEqual(metrics["cross_doc"]["mean_recall_at_k"], 0.9)
+
 
 if __name__ == "__main__":
     unittest.main()

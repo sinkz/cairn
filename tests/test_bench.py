@@ -116,7 +116,9 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(public_metrics["context_reduction"], payload["context_reduction"])
         self.assertEqual(public_metrics["comparison_reduction"], payload["comparison"]["token_reduction"])
         self.assertEqual(retrieval["current"]["corpus"], payload["corpus"])
+        self.assertEqual(retrieval["current"]["slice_metrics"], payload["slice_metrics"])
         self.assertEqual(data["current"]["corpus"], payload["corpus"])
+        self.assertEqual(data["current"]["slice_metrics"], payload["slice_metrics"])
 
     def test_benchmark_outputs_quality_and_token_metrics_for_harder_suite(self) -> None:
         result = run_bench()
@@ -128,7 +130,15 @@ class BenchTests(unittest.TestCase):
         self.assertIn("mean_ndcg_at_k", payload)
         self.assertIn("returned_tokens", payload)
         self.assertIn("context_reduction", payload)
+        self.assertIn("slice_metrics", payload)
         self.assertGreaterEqual(payload["topics"], 10)
+        metrics_by_slice = {item["slice"]: item for item in payload["slice_metrics"]}
+        self.assertEqual(
+            metrics_by_slice["role_workflow"]["topics"],
+            payload["corpus"]["topics_by_slice"]["role_workflow"],
+        )
+        self.assertEqual(metrics_by_slice["passage_budget"]["topics"], 5)
+        self.assertEqual(metrics_by_slice["passage_budget"]["budget_compliance_rate"], 1.0)
         self.assertTrue(any(item["mode"] == "passages" for item in payload["per_topic"]))
         passage_topic = next(item for item in payload["per_topic"] if item["mode"] == "passages")
         self.assertEqual(passage_topic["compare"]["mode"], "documents")
@@ -198,6 +208,9 @@ class BenchTests(unittest.TestCase):
         self.assertEqual(corpus["answerable_topics"], 0)
         self.assertEqual(corpus["no_answer_topics"], 1)
         self.assertEqual(corpus["qrel_rows"], 0)
+        slice_metrics = json.loads(result.stdout)["slice_metrics"]
+        self.assertEqual(slice_metrics[0]["slice"], "no_answer")
+        self.assertEqual(slice_metrics[0]["false_positive_rate"], 0.0)
 
     def test_benchmark_tracks_required_quality_categories(self) -> None:
         result = run_bench()

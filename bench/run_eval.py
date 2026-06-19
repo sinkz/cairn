@@ -348,6 +348,45 @@ def corpus_metadata(root: Path, topics: Sequence[Topic], qrels: dict[str, dict[s
     }
 
 
+def slice_metrics(per_topic: Sequence[dict[str, object]], full_tokens: int) -> list[dict[str, object]]:
+    by_slice: dict[str, list[dict[str, object]]] = {}
+    for item in per_topic:
+        by_slice.setdefault(str(item["category"]), []).append(item)
+
+    out: list[dict[str, object]] = []
+    for name in sorted(by_slice):
+        items = by_slice[name]
+        returned_tokens = sum(int(item["returned_tokens"]) for item in items)
+        full_context_tokens = full_tokens * len(items)
+        no_answer_items = [item for item in items if str(item["category"]) == "no_answer"]
+        false_positives = [
+            item for item in no_answer_items
+            if list(item.get("docs", []))
+        ]
+        out.append(
+            {
+                "slice": name,
+                "topics": len(items),
+                "mean_recall_at_k": round(sum(float(item["recall_at_k"]) for item in items) / len(items), 4),
+                "mean_mrr_at_k": round(sum(float(item["mrr_at_k"]) for item in items) / len(items), 4),
+                "mean_ndcg_at_k": round(sum(float(item["ndcg_at_k"]) for item in items) / len(items), 4),
+                "returned_tokens": returned_tokens,
+                "mean_returned_tokens": round(returned_tokens / len(items), 4),
+                "context_reduction": round(1 - (returned_tokens / full_context_tokens), 4)
+                if full_context_tokens
+                else 0,
+                "budget_compliance_rate": round(
+                    sum(1 for item in items if bool(item["within_budget"])) / len(items),
+                    4,
+                ),
+                "false_positive_rate": round(len(false_positives) / len(no_answer_items), 4)
+                if no_answer_items
+                else 0.0,
+            }
+        )
+    return out
+
+
 def run_map(per_topic: Sequence[dict[str, object]]) -> dict[str, list[str]]:
     return {str(item["id"]): list(item["docs"]) for item in per_topic}
 
@@ -444,6 +483,7 @@ def main(argv: list[str] | None = None) -> int:
                 "baseline_tokens": comparison_baseline_tokens,
                 "token_reduction": round(comparison_reduction, 4),
             },
+            "slice_metrics": slice_metrics(per_topic, full_tokens),
             "per_topic": per_topic,
         }
     actual_run = run_map(per_topic)

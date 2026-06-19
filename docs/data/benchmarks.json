@@ -172,7 +172,213 @@
             "tooling_abbreviation": 1,
             "vocabulary": 1
           }
-        }
+        },
+        "slice_metrics": [
+          {
+            "slice": "access",
+            "topics": 1,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 1.0,
+            "returned_tokens": 242,
+            "mean_returned_tokens": 242.0,
+            "context_reduction": 0.9222,
+            "budget_compliance_rate": 1.0,
+            "false_positive_rate": 0.0
+          },
+          {
+            "slice": "alias",
+            "topics": 1,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 1.0,
+            "returned_tokens": 239,
+            "mean_returned_tokens": 239.0,
+            "context_reduction": 0.9232,
+            "budget_compliance_rate": 1.0,
+            "false_positive_rate": 0.0
+          },
+          {
+            "slice": "duplicates",
+            "topics": 1,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 1.0,
+            "returned_tokens": 385,
+            "mean_returned_tokens": 385.0,
+            "context_reduction": 0.8763,
+            "budget_compliance_rate": 1.0,
+            "false_positive_rate": 0.0
+          },
+          {
+            "slice": "exact_error",
+            "topics": 4,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 0.9585,
+            "returned_tokens": 1121,
+            "mean_returned_tokens": 280.25,
+            "context_reduction": 0.9099,
+            "budget_compliance_rate": 1.0,
+            "false_positive_rate": 0.0
+          },
+          {
+            "slice": "filters",
+            "topics": 3,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 1.0,
+            "returned_tokens": 770,
+            "mean_returned_tokens": 256.6667,
+            "context_reduction": 0.9175,
+            "budget_compliance_rate": 1.0,
+            "false_positive_rate": 0.0
+          },
+          {
+            "slice": "library",
+            "topics": 2,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 1.0,
+            "returned_tokens": 450,
+            "mean_returned_tokens": 225.0,
+            "context_reduction": 0.9277,
+            "budget_compliance_rate": 1.0,
+            "false_positive_rate": 0.0
+          },
+          {
+            "slice": "multilingual",
+            "topics": 1,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 1.0,
+            "returned_tokens": 207,
+            "mean_returned_tokens": 207.0,
+            "context_reduction": 0.9335,
+            "budget_compliance_rate": 1.0,
+            "false_positive_rate": 0.0
+          },
+          {
+            "slice": "passage_budget",
+            "topics": 5,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 1.0,
+            "returned_tokens": 521,
+            "mean_returned_tokens": 104.2,
+            "context_reduction": 0.9665,
+            "budget_compliance_rate": 1.0,
+            "false_positive_rate": 0.0
+          },
+          {
+            "slice": "role_workflow",
+            "topics": 2,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 1.0,
+            "returned_tokens": 462,
+            "mean_returned_tokens": 231.0,
+            "context_reduction": 0.9258,
+            "budget_compliance_rate": 1.0,
+            "false_positive_rate": 0.0
+          },
+          {
+            "slice": "rrf_extra_terms",
+            "topics": 1,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 1.0,
+            "returned_tokens": 593,
+            "mean_returned_tokens": 593.0,
+            "context_reduction": 0.8094,
+            "budget_compliance_rate": 1.0,
+            "false_positive_rate": 0.0
+          },
+          {
+            "slice": "rrf_filter",
+            "topics": 1,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 1.0,
+            "returned_tokens": 236,
+            "mean_returned_tokens": 236.0,
+            "context_reduction": 0.9242,
+            "budget_compliance_rate": 1.0,
+            "false_positive_rate": 0.0
+          },
+          {
+            "slice": "rrf_inflection",
+            "topics": 1,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 1.0,
+            "returned_tokens": 188,
+            "mean_returned_tokens": 188.0,
+            "context_reduction": 0.9396,
+            "budget_compliance_rate": 1.0,
+            "false_positive_rate": 0.0
+          },
+          {
+            "slice": "rrf_passage",
+            "topics": 1,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 1.0,
+            "returned_tokens": 89,
+            "mean_returned_tokens": 89.0,
+            "context_reduction": 0.9714,
+            "budget_compliance_rate": 1.0,
+            "false_positive_rate": 0.0
+          },
+          {
+            "slice": "same_problem_synonyms",
+            "topics": 1,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 1.0,
+            "returned_tokens": 573,
+            "mean_returned_tokens": 573.0,
+            "context_reduction": 0.8159,
+            "budget_compliance_rate": 1.0,
+            "false_positive_rate": 0.0
+          },
+          {
+            "slice": "support_access_synonyms",
+            "topics": 1,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 1.0,
+            "returned_tokens": 243,
+            "mean_returned_tokens": 243.0,
+            "context_reduction": 0.9219,
+            "budget_compliance_rate": 1.0,
+            "false_positive_rate": 0.0
+          },
+          {
+            "slice": "tooling_abbreviation",
+            "topics": 1,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 1.0,
+            "returned_tokens": 230,
+            "mean_returned_tokens": 230.0,
+            "context_reduction": 0.9261,
+            "budget_compliance_rate": 1.0,
+            "false_positive_rate": 0.0
+          },
+          {
+            "slice": "vocabulary",
+            "topics": 1,
+            "mean_recall_at_k": 1.0,
+            "mean_mrr_at_k": 1.0,
+            "mean_ndcg_at_k": 1.0,
+            "returned_tokens": 573,
+            "mean_returned_tokens": 573.0,
+            "context_reduction": 0.8159,
+            "budget_compliance_rate": 1.0,
+            "false_positive_rate": 0.0
+          }
+        ]
       },
       "history_metrics": [
         "recall_at_3",
@@ -252,7 +458,213 @@
               "tooling_abbreviation": 1,
               "vocabulary": 1
             }
-          }
+          },
+          "slice_metrics": [
+            {
+              "slice": "access",
+              "topics": 1,
+              "mean_recall_at_k": 1.0,
+              "mean_mrr_at_k": 1.0,
+              "mean_ndcg_at_k": 1.0,
+              "returned_tokens": 242,
+              "mean_returned_tokens": 242.0,
+              "context_reduction": 0.9222,
+              "budget_compliance_rate": 1.0,
+              "false_positive_rate": 0.0
+            },
+            {
+              "slice": "alias",
+              "topics": 1,
+              "mean_recall_at_k": 1.0,
+              "mean_mrr_at_k": 1.0,
+              "mean_ndcg_at_k": 1.0,
+              "returned_tokens": 239,
+              "mean_returned_tokens": 239.0,
+              "context_reduction": 0.9232,
+              "budget_compliance_rate": 1.0,
+              "false_positive_rate": 0.0
+            },
+            {
+              "slice": "duplicates",
+              "topics": 1,
+              "mean_recall_at_k": 1.0,
+              "mean_mrr_at_k": 1.0,
+              "mean_ndcg_at_k": 1.0,
+              "returned_tokens": 385,
+              "mean_returned_tokens": 385.0,
+              "context_reduction": 0.8763,
+              "budget_compliance_rate": 1.0,
+              "false_positive_rate": 0.0
+            },
+            {
+              "slice": "exact_error",
+              "topics": 4,
+              "mean_recall_at_k": 1.0,
+              "mean_mrr_at_k": 1.0,
+              "mean_ndcg_at_k": 0.9585,
+              "returned_tokens": 1121,
+              "mean_returned_tokens": 280.25,
+              "context_reduction": 0.9099,
+              "budget_compliance_rate": 1.0,
+              "false_positive_rate": 0.0
+            },
+            {
+              "slice": "filters",
+              "topics": 3,
+              "mean_recall_at_k": 1.0,
+              "mean_mrr_at_k": 1.0,
+              "mean_ndcg_at_k": 1.0,
+              "returned_tokens": 770,
+              "mean_returned_tokens": 256.6667,
+              "context_reduction": 0.9175,
+              "budget_compliance_rate": 1.0,
+              "false_positive_rate": 0.0
+            },
+            {
+              "slice": "library",
+              "topics": 2,
+              "mean_recall_at_k": 1.0,
+              "mean_mrr_at_k": 1.0,
+              "mean_ndcg_at_k": 1.0,
+              "returned_tokens": 450,
+              "mean_returned_tokens": 225.0,
+              "context_reduction": 0.9277,
+              "budget_compliance_rate": 1.0,
+              "false_positive_rate": 0.0
+            },
+            {
+              "slice": "multilingual",
+              "topics": 1,
+              "mean_recall_at_k": 1.0,
+              "mean_mrr_at_k": 1.0,
+              "mean_ndcg_at_k": 1.0,
+              "returned_tokens": 207,
+              "mean_returned_tokens": 207.0,
+              "context_reduction": 0.9335,
+              "budget_compliance_rate": 1.0,
+              "false_positive_rate": 0.0
+            },
+            {
+              "slice": "passage_budget",
+              "topics": 5,
+              "mean_recall_at_k": 1.0,
+              "mean_mrr_at_k": 1.0,
+              "mean_ndcg_at_k": 1.0,
+              "returned_tokens": 521,
+              "mean_returned_tokens": 104.2,
+              "context_reduction": 0.9665,
+              "budget_compliance_rate": 1.0,
+              "false_positive_rate": 0.0
+            },
+            {
+              "slice": "role_workflow",
+              "topics": 2,
+              "mean_recall_at_k": 1.0,
+              "mean_mrr_at_k": 1.0,
+              "mean_ndcg_at_k": 1.0,
+              "returned_tokens": 462,
+              "mean_returned_tokens": 231.0,
+              "context_reduction": 0.9258,
+              "budget_compliance_rate": 1.0,
+              "false_positive_rate": 0.0
+            },
+            {
+              "slice": "rrf_extra_terms",
+              "topics": 1,
+              "mean_recall_at_k": 1.0,
+              "mean_mrr_at_k": 1.0,
+              "mean_ndcg_at_k": 1.0,
+              "returned_tokens": 593,
+              "mean_returned_tokens": 593.0,
+              "context_reduction": 0.8094,
+              "budget_compliance_rate": 1.0,
+              "false_positive_rate": 0.0
+            },
+            {
+              "slice": "rrf_filter",
+              "topics": 1,
+              "mean_recall_at_k": 1.0,
+              "mean_mrr_at_k": 1.0,
+              "mean_ndcg_at_k": 1.0,
+              "returned_tokens": 236,
+              "mean_returned_tokens": 236.0,
+              "context_reduction": 0.9242,
+              "budget_compliance_rate": 1.0,
+              "false_positive_rate": 0.0
+            },
+            {
+              "slice": "rrf_inflection",
+              "topics": 1,
+              "mean_recall_at_k": 1.0,
+              "mean_mrr_at_k": 1.0,
+              "mean_ndcg_at_k": 1.0,
+              "returned_tokens": 188,
+              "mean_returned_tokens": 188.0,
+              "context_reduction": 0.9396,
+              "budget_compliance_rate": 1.0,
+              "false_positive_rate": 0.0
+            },
+            {
+              "slice": "rrf_passage",
+              "topics": 1,
+              "mean_recall_at_k": 1.0,
+              "mean_mrr_at_k": 1.0,
+              "mean_ndcg_at_k": 1.0,
+              "returned_tokens": 89,
+              "mean_returned_tokens": 89.0,
+              "context_reduction": 0.9714,
+              "budget_compliance_rate": 1.0,
+              "false_positive_rate": 0.0
+            },
+            {
+              "slice": "same_problem_synonyms",
+              "topics": 1,
+              "mean_recall_at_k": 1.0,
+              "mean_mrr_at_k": 1.0,
+              "mean_ndcg_at_k": 1.0,
+              "returned_tokens": 573,
+              "mean_returned_tokens": 573.0,
+              "context_reduction": 0.8159,
+              "budget_compliance_rate": 1.0,
+              "false_positive_rate": 0.0
+            },
+            {
+              "slice": "support_access_synonyms",
+              "topics": 1,
+              "mean_recall_at_k": 1.0,
+              "mean_mrr_at_k": 1.0,
+              "mean_ndcg_at_k": 1.0,
+              "returned_tokens": 243,
+              "mean_returned_tokens": 243.0,
+              "context_reduction": 0.9219,
+              "budget_compliance_rate": 1.0,
+              "false_positive_rate": 0.0
+            },
+            {
+              "slice": "tooling_abbreviation",
+              "topics": 1,
+              "mean_recall_at_k": 1.0,
+              "mean_mrr_at_k": 1.0,
+              "mean_ndcg_at_k": 1.0,
+              "returned_tokens": 230,
+              "mean_returned_tokens": 230.0,
+              "context_reduction": 0.9261,
+              "budget_compliance_rate": 1.0,
+              "false_positive_rate": 0.0
+            },
+            {
+              "slice": "vocabulary",
+              "topics": 1,
+              "mean_recall_at_k": 1.0,
+              "mean_mrr_at_k": 1.0,
+              "mean_ndcg_at_k": 1.0,
+              "returned_tokens": 573,
+              "mean_returned_tokens": 573.0,
+              "context_reduction": 0.8159,
+              "budget_compliance_rate": 1.0,
+              "false_positive_rate": 0.0
+            }
+          ]
         }
       ]
     },
@@ -549,7 +961,7 @@
           "en": "Regression tests",
           "pt": "Testes de regressão"
         },
-        "value": 215,
+        "value": 216,
         "format": "integer",
         "precision": 0,
         "description": {
@@ -604,7 +1016,213 @@
         "tooling_abbreviation": 1,
         "vocabulary": 1
       }
-    }
+    },
+    "slice_metrics": [
+      {
+        "slice": "access",
+        "topics": 1,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 1.0,
+        "returned_tokens": 242,
+        "mean_returned_tokens": 242.0,
+        "context_reduction": 0.9222,
+        "budget_compliance_rate": 1.0,
+        "false_positive_rate": 0.0
+      },
+      {
+        "slice": "alias",
+        "topics": 1,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 1.0,
+        "returned_tokens": 239,
+        "mean_returned_tokens": 239.0,
+        "context_reduction": 0.9232,
+        "budget_compliance_rate": 1.0,
+        "false_positive_rate": 0.0
+      },
+      {
+        "slice": "duplicates",
+        "topics": 1,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 1.0,
+        "returned_tokens": 385,
+        "mean_returned_tokens": 385.0,
+        "context_reduction": 0.8763,
+        "budget_compliance_rate": 1.0,
+        "false_positive_rate": 0.0
+      },
+      {
+        "slice": "exact_error",
+        "topics": 4,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 0.9585,
+        "returned_tokens": 1121,
+        "mean_returned_tokens": 280.25,
+        "context_reduction": 0.9099,
+        "budget_compliance_rate": 1.0,
+        "false_positive_rate": 0.0
+      },
+      {
+        "slice": "filters",
+        "topics": 3,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 1.0,
+        "returned_tokens": 770,
+        "mean_returned_tokens": 256.6667,
+        "context_reduction": 0.9175,
+        "budget_compliance_rate": 1.0,
+        "false_positive_rate": 0.0
+      },
+      {
+        "slice": "library",
+        "topics": 2,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 1.0,
+        "returned_tokens": 450,
+        "mean_returned_tokens": 225.0,
+        "context_reduction": 0.9277,
+        "budget_compliance_rate": 1.0,
+        "false_positive_rate": 0.0
+      },
+      {
+        "slice": "multilingual",
+        "topics": 1,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 1.0,
+        "returned_tokens": 207,
+        "mean_returned_tokens": 207.0,
+        "context_reduction": 0.9335,
+        "budget_compliance_rate": 1.0,
+        "false_positive_rate": 0.0
+      },
+      {
+        "slice": "passage_budget",
+        "topics": 5,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 1.0,
+        "returned_tokens": 521,
+        "mean_returned_tokens": 104.2,
+        "context_reduction": 0.9665,
+        "budget_compliance_rate": 1.0,
+        "false_positive_rate": 0.0
+      },
+      {
+        "slice": "role_workflow",
+        "topics": 2,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 1.0,
+        "returned_tokens": 462,
+        "mean_returned_tokens": 231.0,
+        "context_reduction": 0.9258,
+        "budget_compliance_rate": 1.0,
+        "false_positive_rate": 0.0
+      },
+      {
+        "slice": "rrf_extra_terms",
+        "topics": 1,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 1.0,
+        "returned_tokens": 593,
+        "mean_returned_tokens": 593.0,
+        "context_reduction": 0.8094,
+        "budget_compliance_rate": 1.0,
+        "false_positive_rate": 0.0
+      },
+      {
+        "slice": "rrf_filter",
+        "topics": 1,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 1.0,
+        "returned_tokens": 236,
+        "mean_returned_tokens": 236.0,
+        "context_reduction": 0.9242,
+        "budget_compliance_rate": 1.0,
+        "false_positive_rate": 0.0
+      },
+      {
+        "slice": "rrf_inflection",
+        "topics": 1,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 1.0,
+        "returned_tokens": 188,
+        "mean_returned_tokens": 188.0,
+        "context_reduction": 0.9396,
+        "budget_compliance_rate": 1.0,
+        "false_positive_rate": 0.0
+      },
+      {
+        "slice": "rrf_passage",
+        "topics": 1,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 1.0,
+        "returned_tokens": 89,
+        "mean_returned_tokens": 89.0,
+        "context_reduction": 0.9714,
+        "budget_compliance_rate": 1.0,
+        "false_positive_rate": 0.0
+      },
+      {
+        "slice": "same_problem_synonyms",
+        "topics": 1,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 1.0,
+        "returned_tokens": 573,
+        "mean_returned_tokens": 573.0,
+        "context_reduction": 0.8159,
+        "budget_compliance_rate": 1.0,
+        "false_positive_rate": 0.0
+      },
+      {
+        "slice": "support_access_synonyms",
+        "topics": 1,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 1.0,
+        "returned_tokens": 243,
+        "mean_returned_tokens": 243.0,
+        "context_reduction": 0.9219,
+        "budget_compliance_rate": 1.0,
+        "false_positive_rate": 0.0
+      },
+      {
+        "slice": "tooling_abbreviation",
+        "topics": 1,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 1.0,
+        "returned_tokens": 230,
+        "mean_returned_tokens": 230.0,
+        "context_reduction": 0.9261,
+        "budget_compliance_rate": 1.0,
+        "false_positive_rate": 0.0
+      },
+      {
+        "slice": "vocabulary",
+        "topics": 1,
+        "mean_recall_at_k": 1.0,
+        "mean_mrr_at_k": 1.0,
+        "mean_ndcg_at_k": 1.0,
+        "returned_tokens": 573,
+        "mean_returned_tokens": 573.0,
+        "context_reduction": 0.8159,
+        "budget_compliance_rate": 1.0,
+        "false_positive_rate": 0.0
+      }
+    ]
   },
   "suite": {
     "name": {
@@ -690,7 +1308,213 @@
           "tooling_abbreviation": 1,
           "vocabulary": 1
         }
-      }
+      },
+      "slice_metrics": [
+        {
+          "slice": "access",
+          "topics": 1,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 1.0,
+          "returned_tokens": 242,
+          "mean_returned_tokens": 242.0,
+          "context_reduction": 0.9222,
+          "budget_compliance_rate": 1.0,
+          "false_positive_rate": 0.0
+        },
+        {
+          "slice": "alias",
+          "topics": 1,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 1.0,
+          "returned_tokens": 239,
+          "mean_returned_tokens": 239.0,
+          "context_reduction": 0.9232,
+          "budget_compliance_rate": 1.0,
+          "false_positive_rate": 0.0
+        },
+        {
+          "slice": "duplicates",
+          "topics": 1,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 1.0,
+          "returned_tokens": 385,
+          "mean_returned_tokens": 385.0,
+          "context_reduction": 0.8763,
+          "budget_compliance_rate": 1.0,
+          "false_positive_rate": 0.0
+        },
+        {
+          "slice": "exact_error",
+          "topics": 4,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 0.9585,
+          "returned_tokens": 1121,
+          "mean_returned_tokens": 280.25,
+          "context_reduction": 0.9099,
+          "budget_compliance_rate": 1.0,
+          "false_positive_rate": 0.0
+        },
+        {
+          "slice": "filters",
+          "topics": 3,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 1.0,
+          "returned_tokens": 770,
+          "mean_returned_tokens": 256.6667,
+          "context_reduction": 0.9175,
+          "budget_compliance_rate": 1.0,
+          "false_positive_rate": 0.0
+        },
+        {
+          "slice": "library",
+          "topics": 2,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 1.0,
+          "returned_tokens": 450,
+          "mean_returned_tokens": 225.0,
+          "context_reduction": 0.9277,
+          "budget_compliance_rate": 1.0,
+          "false_positive_rate": 0.0
+        },
+        {
+          "slice": "multilingual",
+          "topics": 1,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 1.0,
+          "returned_tokens": 207,
+          "mean_returned_tokens": 207.0,
+          "context_reduction": 0.9335,
+          "budget_compliance_rate": 1.0,
+          "false_positive_rate": 0.0
+        },
+        {
+          "slice": "passage_budget",
+          "topics": 5,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 1.0,
+          "returned_tokens": 521,
+          "mean_returned_tokens": 104.2,
+          "context_reduction": 0.9665,
+          "budget_compliance_rate": 1.0,
+          "false_positive_rate": 0.0
+        },
+        {
+          "slice": "role_workflow",
+          "topics": 2,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 1.0,
+          "returned_tokens": 462,
+          "mean_returned_tokens": 231.0,
+          "context_reduction": 0.9258,
+          "budget_compliance_rate": 1.0,
+          "false_positive_rate": 0.0
+        },
+        {
+          "slice": "rrf_extra_terms",
+          "topics": 1,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 1.0,
+          "returned_tokens": 593,
+          "mean_returned_tokens": 593.0,
+          "context_reduction": 0.8094,
+          "budget_compliance_rate": 1.0,
+          "false_positive_rate": 0.0
+        },
+        {
+          "slice": "rrf_filter",
+          "topics": 1,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 1.0,
+          "returned_tokens": 236,
+          "mean_returned_tokens": 236.0,
+          "context_reduction": 0.9242,
+          "budget_compliance_rate": 1.0,
+          "false_positive_rate": 0.0
+        },
+        {
+          "slice": "rrf_inflection",
+          "topics": 1,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 1.0,
+          "returned_tokens": 188,
+          "mean_returned_tokens": 188.0,
+          "context_reduction": 0.9396,
+          "budget_compliance_rate": 1.0,
+          "false_positive_rate": 0.0
+        },
+        {
+          "slice": "rrf_passage",
+          "topics": 1,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 1.0,
+          "returned_tokens": 89,
+          "mean_returned_tokens": 89.0,
+          "context_reduction": 0.9714,
+          "budget_compliance_rate": 1.0,
+          "false_positive_rate": 0.0
+        },
+        {
+          "slice": "same_problem_synonyms",
+          "topics": 1,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 1.0,
+          "returned_tokens": 573,
+          "mean_returned_tokens": 573.0,
+          "context_reduction": 0.8159,
+          "budget_compliance_rate": 1.0,
+          "false_positive_rate": 0.0
+        },
+        {
+          "slice": "support_access_synonyms",
+          "topics": 1,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 1.0,
+          "returned_tokens": 243,
+          "mean_returned_tokens": 243.0,
+          "context_reduction": 0.9219,
+          "budget_compliance_rate": 1.0,
+          "false_positive_rate": 0.0
+        },
+        {
+          "slice": "tooling_abbreviation",
+          "topics": 1,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 1.0,
+          "returned_tokens": 230,
+          "mean_returned_tokens": 230.0,
+          "context_reduction": 0.9261,
+          "budget_compliance_rate": 1.0,
+          "false_positive_rate": 0.0
+        },
+        {
+          "slice": "vocabulary",
+          "topics": 1,
+          "mean_recall_at_k": 1.0,
+          "mean_mrr_at_k": 1.0,
+          "mean_ndcg_at_k": 1.0,
+          "returned_tokens": 573,
+          "mean_returned_tokens": 573.0,
+          "context_reduction": 0.8159,
+          "budget_compliance_rate": 1.0,
+          "false_positive_rate": 0.0
+        }
+      ]
     }
   ],
   "planned_comparisons": [
