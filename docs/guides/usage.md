@@ -669,7 +669,7 @@ python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
 python bench/run_perf_eval.py --quiet --repeat 1
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 221
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 228
 ```
 
 Benchmark topics may include `category`, `mode`, `compare_mode`, `ranker`, and
@@ -684,6 +684,11 @@ criteria used before tuning ranking, RRF, or optional embeddings.
 The writeback benchmark uses deterministic cases for create, update, no-op,
 conflict, duplicate avoidance, and target-path accuracy. It does not call a
 model; it exercises ApolloKairn's local similarity and writeback primitives.
+
+Optional L2 agent evals use `bench/agent/run_agent_eval.py --live` with an
+explicit local `--provider-command`. The provider command receives request JSON
+on stdin and returns answer, citations, abstention, token, and cost JSON on
+stdout. This mode is outside the deterministic gate.
 
 `bench/publish_metrics.py` is the publishing step for the GitHub Pages
 dashboard. It runs the retrieval, writeback, grep baseline, and performance

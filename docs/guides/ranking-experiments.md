@@ -42,7 +42,7 @@ python bench/agent/run_agent_eval.py --mock --fixture bench/fixtures/vault-large
 python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
 python bench/run_perf_eval.py --quiet --repeat 1
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 221
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 228
 git diff --check
 ```
 
@@ -98,9 +98,28 @@ sufficiency, not real model behavior.
 
 Paid or model-backed L2 evaluation should stay outside rigid CI. It can be used
 to calibrate whether ranking changes reduce real agent tokens or improve answer
-quality, but it must report model, seed or retry policy, sample count, token
-usage, cost, and judge rubric. L2 should compare ApolloKairn against a raw-read
-or grep baseline on the same task set.
+quality. At minimum, record provider, model, temperature, repeat count, token
+usage, cost, and the provider-command contract. When the provider uses seeds,
+retry policy, or an LLM judge, include those details in the eval report. L2
+should compare ApolloKairn against a raw-read or grep baseline on the same task
+set.
+
+The runner supports an explicit external-provider contract:
+
+```bash
+python bench/agent/run_agent_eval.py --live \
+  --provider-command "python path/to/provider.py" \
+  --provider-name local-eval \
+  --model fixed-model \
+  --repeat 5 \
+  --output docs/data/agent-evals.json
+```
+
+The provider command reads request JSON from stdin. The request includes the
+question, retrieved context, source paths, strategy, model, temperature, and
+repetition. It does not include `expected_paths` or `expected_facts`. The
+provider writes response JSON with `answer`, `cited_paths`, `abstained`,
+`tool_calls`, `input_tokens`, `output_tokens`, and `cost_usd`.
 
 ## Embedding Experiments
 

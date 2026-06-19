@@ -681,7 +681,7 @@ python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
 python bench/run_perf_eval.py --quiet --repeat 1
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 221
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 228
 ```
 
 Tópicos do benchmark podem incluir `category`, `mode`, `compare_mode`, `ranker`
@@ -695,6 +695,11 @@ critérios de aceite usados antes de ajustar ranking, RRF ou embeddings opcionai
 O benchmark de escrita usa casos determinísticos para criar, atualizar, no-op,
 conflito, prevenção de duplicatas e acurácia do caminho alvo. Ele não chama
 modelo; exercita os primitivos locais de similaridade e escrita do ApolloKairn.
+
+Evals L2 opcionais com agente usam `bench/agent/run_agent_eval.py --live` com
+um `--provider-command` local explícito. O comando recebe JSON no stdin e retorna
+JSON no stdout com resposta, citações, abstenção, tokens e custo. Esse modo fica
+fora do gate determinístico.
 
 `bench/publish_metrics.py` é a etapa de publicação para o dashboard do GitHub
 Pages. Ele roda as suítes de recuperação, writeback, baseline grep e

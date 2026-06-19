@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import subprocess
 import sys
 import tempfile
 from dataclasses import dataclass
@@ -22,6 +23,10 @@ from cairn.validate import RESERVED_NAMES
 _STRATEGIES = ("retrieve", "grep")
 _MODES = ("documents", "passages")
 _RANKERS = ("bm25", "rrf", "auto")
+
+
+class ProviderError(RuntimeError):
+    pass
 
 
 @dataclass(frozen=True)
@@ -219,6 +224,14 @@ def _mean(values: Sequence[float]) -> float:
     return round(sum(values) / len(values), 4)
 
 
+def _stddev(values: Sequence[float]) -> float:
+    if len(values) < 2:
+        return 0.0
+    mean = sum(values) / len(values)
+    variance = sum((value - mean) ** 2 for value in values) / len(values)
+    return round(variance**0.5, 4)
+
+
 def _concept_files(root: Path) -> list[Path]:
     out: list[Path] = []
     for path in root.rglob("*.md"):
@@ -276,13 +289,16 @@ def _retrieve_context(root: Path, task: AgentTask) -> tuple[str, list[str], int]
     return packet.context, [source.path for source in packet.sources], packet.used_tokens
 
 
-def evaluate_task(root: Path, task: AgentTask, strategy: str) -> dict[str, object]:
+def _context_for_task(root: Path, task: AgentTask, strategy: str) -> tuple[str, list[str], int]:
     if strategy == "retrieve":
-        context, source_paths, used_tokens = _retrieve_context(root, task)
-    elif strategy == "grep":
-        context, source_paths, used_tokens = _grep_context(root, task)
-    else:
-        raise ValueError(f"unknown strategy: {strategy}")
+        return _retrieve_context(root, task)
+    if strategy == "grep":
+        return _grep_context(root, task)
+    raise ValueError(f"unknown strategy: {strategy}")
+
+
+def evaluate_task(root: Path, task: AgentTask, strategy: str) -> dict[str, object]:
+    context, source_paths, used_tokens = _context_for_task(root, task, strategy)
 
     context_folded = context.casefold()
     matched_facts = [fact for fact in task.expected_facts if fact.casefold() in context_folded]
@@ -309,6 +325,151 @@ def evaluate_task(root: Path, task: AgentTask, strategy: str) -> dict[str, objec
         "fact_coverage": round(fact_coverage, 4),
         "context_sufficient": context_sufficient,
         "returned_tokens": used_tokens,
+        "budget_tokens": task.budget,
+        "within_budget": used_tokens <= task.budget,
+    }
+
+
+def _optional_string_list(value: object, *, field: str) -> list[str]:
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise ProviderError(f"provider response field {field} must be a list of strings")
+    out: list[str] = []
+    for idx, item in enumerate(value):
+        if not isinstance(item, str):
+            raise ProviderError(f"provider response field {field}[{idx}] must be a string")
+        out.append(item)
+    return out
+
+
+def _optional_number(value: object, *, field: str, default: float) -> float:
+    if value is None:
+        return default
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ProviderError(f"provider response field {field} must be a number")
+    number = float(value)
+    if number < 0:
+        raise ProviderError(f"provider response field {field} must be non-negative")
+    return number
+
+
+def _optional_int(value: object, *, field: str, default: int) -> int:
+    number = _optional_number(value, field=field, default=float(default))
+    if number < 0:
+        raise ProviderError(f"provider response field {field} must be non-negative")
+    return int(number)
+
+
+def _run_provider_command(command: str, request: Mapping[str, object], timeout: float) -> dict[str, object]:
+    try:
+        result = subprocess.run(
+            command,
+            input=json.dumps(request, ensure_ascii=False),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            shell=True,
+            timeout=timeout,
+            check=False,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise ProviderError(f"provider command timed out after {timeout:g}s") from exc
+    if result.returncode != 0:
+        stderr = result.stderr.strip()
+        detail = f": {stderr}" if stderr else ""
+        raise ProviderError(f"provider command failed with exit code {result.returncode}{detail}")
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise ProviderError(f"provider command returned invalid JSON: {exc.msg}") from exc
+    if not isinstance(payload, dict):
+        raise ProviderError("provider command JSON must be an object")
+    return payload
+
+
+def evaluate_live_run(
+    root: Path,
+    task: AgentTask,
+    strategy: str,
+    *,
+    repetition: int,
+    provider_command: str,
+    provider_name: str,
+    model: str,
+    temperature: float,
+    timeout: float,
+) -> dict[str, object]:
+    context, source_paths, used_tokens = _context_for_task(root, task, strategy)
+    request = {
+        "task_id": task.id,
+        "query_id": task.query_id,
+        "slice": task.slice,
+        "question": task.question,
+        "context": context,
+        "source_paths": source_paths,
+        "strategy": strategy,
+        "mode": task.mode,
+        "ranker": task.ranker,
+        "budget_tokens": task.budget,
+        "repetition": repetition,
+        "provider": provider_name,
+        "model": model,
+        "temperature": temperature,
+    }
+    response = _run_provider_command(provider_command, request, timeout)
+    answer = response.get("answer")
+    if not isinstance(answer, str):
+        raise ProviderError("provider response field answer must be a string")
+    cited_paths = _optional_string_list(response.get("cited_paths"), field="cited_paths")
+    abstained = response.get("abstained", False)
+    if not isinstance(abstained, bool):
+        raise ProviderError("provider response field abstained must be a boolean")
+
+    input_tokens = _optional_int(
+        response.get("input_tokens"),
+        field="input_tokens",
+        default=approx_tokens(task.question) + used_tokens,
+    )
+    output_tokens = _optional_int(response.get("output_tokens"), field="output_tokens", default=approx_tokens(answer))
+    tool_calls = _optional_int(response.get("tool_calls"), field="tool_calls", default=1)
+    cost_usd = _optional_number(response.get("cost_usd"), field="cost_usd", default=0.0)
+
+    answer_folded = answer.casefold()
+    matched_facts = [fact for fact in task.expected_facts if fact.casefold() in answer_folded]
+    missing_facts = [fact for fact in task.expected_facts if fact.casefold() not in answer_folded]
+    path_sufficient = all(path in cited_paths or path in answer for path in task.expected_paths)
+    fact_coverage = len(matched_facts) / len(task.expected_facts) if task.expected_facts else 1.0
+    facts_sufficient = not missing_facts
+    abstention_correct = abstained and not cited_paths
+    answer_sufficient = facts_sufficient if task.expected_facts else path_sufficient
+    task_success = abstention_correct if task.expect_abstention else answer_sufficient
+    grounded = abstention_correct if task.expect_abstention else bool(cited_paths) and all(path in source_paths for path in cited_paths)
+
+    return {
+        "id": task.id,
+        "query_id": task.query_id,
+        "slice": task.slice,
+        "repetition": repetition,
+        "expected_paths": list(task.expected_paths),
+        "source_paths": source_paths,
+        "cited_paths": cited_paths,
+        "expected_facts": list(task.expected_facts),
+        "matched_facts": matched_facts,
+        "missing_facts": missing_facts,
+        "expect_abstention": task.expect_abstention,
+        "abstained": abstained,
+        "abstention_correct": abstention_correct if task.expect_abstention else None,
+        "path_sufficient": path_sufficient,
+        "facts_sufficient": facts_sufficient,
+        "fact_coverage": round(fact_coverage, 4),
+        "grounded": grounded,
+        "task_success": task_success,
+        "context_tokens": used_tokens,
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "tool_calls": tool_calls,
+        "cost_usd": round(cost_usd, 6),
         "budget_tokens": task.budget,
         "within_budget": used_tokens <= task.budget,
     }
@@ -344,6 +505,51 @@ def summarize_dry_run(tasks: Sequence[AgentTask]) -> dict[str, object]:
     }
 
 
+def summarize_live(
+    per_run: Sequence[dict[str, object]],
+    *,
+    tasks: Sequence[AgentTask],
+    strategy: str,
+    provider_name: str,
+    model: str,
+    repeat: int,
+    temperature: float,
+) -> dict[str, object]:
+    path_runs = [item for item in per_run if item["expected_paths"]]
+    abstention_runs = [item for item in per_run if item["expect_abstention"]]
+    input_tokens = [float(item["input_tokens"]) for item in per_run]
+    output_tokens = [float(item["output_tokens"]) for item in per_run]
+    tool_calls = [float(item["tool_calls"]) for item in per_run]
+    costs = [float(item["cost_usd"]) for item in per_run]
+    return {
+        "suite": "agent_eval_l2",
+        "mode": "live",
+        "strategy": strategy,
+        "provider": provider_name,
+        "model": model,
+        "temperature": temperature,
+        "repeat": repeat,
+        "tasks": len(tasks),
+        "runs": len(per_run),
+        "slices": sorted({task.slice for task in tasks}),
+        "task_success_rate": _rate([bool(item["task_success"]) for item in per_run]),
+        "source_path_accuracy": _rate([bool(item["path_sufficient"]) for item in path_runs]),
+        "mean_fact_coverage": _mean([float(item["fact_coverage"]) for item in per_run]),
+        "abstention_accuracy": _rate([bool(item["abstention_correct"]) for item in abstention_runs]),
+        "groundedness_rate": _rate([bool(item["grounded"]) for item in per_run]),
+        "budget_compliance_rate": _rate([bool(item["within_budget"]) for item in per_run]),
+        "mean_input_tokens": _mean(input_tokens),
+        "stddev_input_tokens": _stddev(input_tokens),
+        "mean_output_tokens": _mean(output_tokens),
+        "stddev_output_tokens": _stddev(output_tokens),
+        "mean_tool_calls": _mean(tool_calls),
+        "stddev_tool_calls": _stddev(tool_calls),
+        "total_cost_usd": round(sum(costs), 6),
+        "mean_cost_usd": round(sum(costs) / len(costs), 6) if costs else 0.0,
+        "per_run": list(per_run),
+    }
+
+
 def _write_output(payload: Mapping[str, object], output: str | None) -> None:
     if not output:
         return
@@ -353,14 +559,21 @@ def _write_output(payload: Mapping[str, object], output: str | None) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run deterministic L0 agent-eval harness checks.")
+    parser = argparse.ArgumentParser(description="Run agent-eval harness checks.")
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--dry-run", action="store_true", help="Validate task schema without executing retrieval.")
     mode.add_argument("--mock", action="store_true", help="Run deterministic context-sufficiency checks.")
+    mode.add_argument("--live", action="store_true", help="Run optional L2 provider-command evaluation.")
     parser.add_argument("--fixture", default=str(ROOT / "bench" / "fixtures" / "vault"))
     parser.add_argument("--tasks", default=str(ROOT / "bench" / "agent" / "tasks.example.jsonl"))
     parser.add_argument("--topics", default=str(ROOT / "bench" / "topics.jsonl"))
     parser.add_argument("--strategy", choices=_STRATEGIES, default="retrieve")
+    parser.add_argument("--provider-command", help="External command that reads request JSON on stdin and writes response JSON.")
+    parser.add_argument("--provider-name", default="external-command")
+    parser.add_argument("--model", default="external")
+    parser.add_argument("--temperature", type=float, default=0.0)
+    parser.add_argument("--repeat", type=int, default=1)
+    parser.add_argument("--provider-timeout", type=float, default=60.0)
     parser.add_argument("--min-context-sufficiency", type=float, default=1.0)
     parser.add_argument("--output")
     parser.add_argument("--quiet", action="store_true")
@@ -383,11 +596,66 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0
 
+    if args.live:
+        if not args.provider_command:
+            print("agent eval error: --live requires --provider-command", file=sys.stderr)
+            return 2
+        if args.repeat <= 0:
+            print("agent eval error: --repeat must be a positive integer", file=sys.stderr)
+            return 2
+        if args.provider_timeout <= 0:
+            print("agent eval error: --provider-timeout must be positive", file=sys.stderr)
+            return 2
+
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp) / "vault"
         shutil.copytree(fixture, root)
         if args.strategy == "retrieve":
             rebuild_index(root)
+        if args.live:
+            per_run: list[dict[str, object]] = []
+            try:
+                for repetition in range(1, args.repeat + 1):
+                    for task in tasks:
+                        per_run.append(
+                            evaluate_live_run(
+                                root,
+                                task,
+                                args.strategy,
+                                repetition=repetition,
+                                provider_command=args.provider_command,
+                                provider_name=args.provider_name,
+                                model=args.model,
+                                temperature=args.temperature,
+                                timeout=args.provider_timeout,
+                            )
+                        )
+            except ProviderError as exc:
+                print(f"agent eval error: {exc}", file=sys.stderr)
+                return 2
+            payload = summarize_live(
+                per_run,
+                tasks=tasks,
+                strategy=args.strategy,
+                provider_name=args.provider_name,
+                model=args.model,
+                repeat=args.repeat,
+                temperature=args.temperature,
+            )
+            _write_output(payload, args.output)
+            if args.quiet:
+                print(
+                    "agent-eval live ok "
+                    f"provider={payload['provider']} "
+                    f"model={payload['model']} "
+                    f"tasks={payload['tasks']} "
+                    f"repeat={payload['repeat']} "
+                    f"task_success={payload['task_success_rate']} "
+                    f"cost_usd={payload['total_cost_usd']}"
+                )
+            else:
+                print(json.dumps(payload, ensure_ascii=False, indent=2))
+            return 0
         per_task = [evaluate_task(root, task, args.strategy) for task in tasks]
 
     payload = summarize_mock(per_task, args.strategy)

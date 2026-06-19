@@ -911,7 +911,7 @@
             },
             "format": "decimal",
             "precision": 4,
-            "value": 1.5184
+            "value": 1.5218
           },
           {
             "id": "search_p95_ms",
@@ -921,7 +921,7 @@
             },
             "format": "decimal",
             "precision": 4,
-            "value": 5.2167
+            "value": 5.3548
           },
           {
             "id": "retrieve_p50_ms",
@@ -931,7 +931,7 @@
             },
             "format": "decimal",
             "precision": 4,
-            "value": 3.1964
+            "value": 3.1526
           },
           {
             "id": "retrieve_p95_ms",
@@ -941,7 +941,7 @@
             },
             "format": "decimal",
             "precision": 4,
-            "value": 7.0769
+            "value": 7.4802
           },
           {
             "id": "full_index_ms",
@@ -951,7 +951,7 @@
             },
             "format": "decimal",
             "precision": 4,
-            "value": 732.3099
+            "value": 739.8902
           },
           {
             "id": "incremental_index_ms",
@@ -961,7 +961,7 @@
             },
             "format": "decimal",
             "precision": 4,
-            "value": 151.3631
+            "value": 148.9446
           },
           {
             "id": "index_db_bytes",
@@ -979,8 +979,8 @@
           "topics": 80,
           "repeat": 1,
           "limit": 3,
-          "full_index_ms": 732.3099,
-          "incremental_index_ms": 151.3631,
+          "full_index_ms": 739.8902,
+          "incremental_index_ms": 148.9446,
           "incremental_index": {
             "updated": 1,
             "removed": 0,
@@ -989,17 +989,17 @@
           "index_db_bytes": 1744896,
           "search_ms": {
             "samples": 80,
-            "min": 0.9789,
-            "p50": 1.5184,
-            "p95": 5.2167,
-            "max": 6.8448
+            "min": 0.9939,
+            "p50": 1.5218,
+            "p95": 5.3548,
+            "max": 7.7958
           },
           "retrieve_ms": {
             "samples": 80,
-            "min": 1.033,
-            "p50": 3.1964,
-            "p95": 7.0769,
-            "max": 9.097
+            "min": 1.0108,
+            "p50": 3.1526,
+            "p95": 7.4802,
+            "max": 8.6623
           }
         }
       },
@@ -1008,12 +1008,12 @@
           "date": "2026-06-19",
           "label": "large-fixture-local",
           "topics": 80,
-          "search_p50_ms": 1.5184,
-          "search_p95_ms": 5.2167,
-          "retrieve_p50_ms": 3.1964,
-          "retrieve_p95_ms": 7.0769,
-          "full_index_ms": 732.3099,
-          "incremental_index_ms": 151.3631,
+          "search_p50_ms": 1.5218,
+          "search_p95_ms": 5.3548,
+          "retrieve_p50_ms": 3.1526,
+          "retrieve_p95_ms": 7.4802,
+          "full_index_ms": 739.8902,
+          "incremental_index_ms": 148.9446,
           "index_db_bytes": 1744896
         }
       ],
@@ -1144,7 +1144,7 @@
           "en": "Regression tests",
           "pt": "Testes de regressão"
         },
-        "value": 221,
+        "value": 228,
         "format": "integer",
         "precision": 0,
         "description": {
