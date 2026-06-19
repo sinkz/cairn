@@ -102,6 +102,14 @@ class PublishMetricsTests(unittest.TestCase):
             self.assertGreaterEqual(writeback_metrics["writeback_cases"], 9)
             self.assertEqual(writeback_metrics["decision_accuracy"], 1.0)
 
+            performance = next(suite for suite in data["suites"] if suite["id"] == "performance")
+            performance_metrics = {metric["id"]: metric["value"] for metric in performance["current"]["metrics"]}
+            self.assertGreater(performance_metrics["search_p50_ms"], 0)
+            self.assertGreater(performance_metrics["retrieve_p50_ms"], 0)
+            self.assertGreater(performance_metrics["full_index_ms"], 0)
+            self.assertGreater(performance_metrics["index_db_bytes"], 0)
+            self.assertEqual(performance["current"]["summary"]["suite"], "performance")
+
 
 if __name__ == "__main__":
     unittest.main()

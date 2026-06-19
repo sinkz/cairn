@@ -898,6 +898,133 @@
           "writeback_cases": 11
         }
       ]
+    },
+    {
+      "id": "performance",
+      "current": {
+        "metrics": [
+          {
+            "id": "search_p50_ms",
+            "label": {
+              "en": "search_p50_ms",
+              "pt": "search_p50_ms"
+            },
+            "format": "decimal",
+            "precision": 4,
+            "value": 1.4953
+          },
+          {
+            "id": "search_p95_ms",
+            "label": {
+              "en": "search_p95_ms",
+              "pt": "search_p95_ms"
+            },
+            "format": "decimal",
+            "precision": 4,
+            "value": 5.3939
+          },
+          {
+            "id": "retrieve_p50_ms",
+            "label": {
+              "en": "retrieve_p50_ms",
+              "pt": "retrieve_p50_ms"
+            },
+            "format": "decimal",
+            "precision": 4,
+            "value": 3.1835
+          },
+          {
+            "id": "retrieve_p95_ms",
+            "label": {
+              "en": "retrieve_p95_ms",
+              "pt": "retrieve_p95_ms"
+            },
+            "format": "decimal",
+            "precision": 4,
+            "value": 7.2847
+          },
+          {
+            "id": "full_index_ms",
+            "label": {
+              "en": "full_index_ms",
+              "pt": "full_index_ms"
+            },
+            "format": "decimal",
+            "precision": 4,
+            "value": 855.0329
+          },
+          {
+            "id": "incremental_index_ms",
+            "label": {
+              "en": "incremental_index_ms",
+              "pt": "incremental_index_ms"
+            },
+            "format": "decimal",
+            "precision": 4,
+            "value": 132.0437
+          },
+          {
+            "id": "index_db_bytes",
+            "label": {
+              "en": "index_db_bytes",
+              "pt": "index_db_bytes"
+            },
+            "format": "decimal",
+            "precision": 4,
+            "value": 1744896
+          }
+        ],
+        "summary": {
+          "suite": "performance",
+          "topics": 80,
+          "repeat": 1,
+          "limit": 3,
+          "full_index_ms": 855.0329,
+          "incremental_index_ms": 132.0437,
+          "incremental_index": {
+            "updated": 1,
+            "removed": 0,
+            "skipped": 299
+          },
+          "index_db_bytes": 1744896,
+          "search_ms": {
+            "samples": 80,
+            "min": 1.0,
+            "p50": 1.4953,
+            "p95": 5.3939,
+            "max": 6.921
+          },
+          "retrieve_ms": {
+            "samples": 80,
+            "min": 1.0264,
+            "p50": 3.1835,
+            "p95": 7.2847,
+            "max": 8.2929
+          }
+        }
+      },
+      "history": [
+        {
+          "date": "2026-06-19",
+          "label": "large-fixture-local",
+          "topics": 80,
+          "search_p50_ms": 1.4953,
+          "search_p95_ms": 5.3939,
+          "retrieve_p50_ms": 3.1835,
+          "retrieve_p95_ms": 7.2847,
+          "full_index_ms": 855.0329,
+          "incremental_index_ms": 132.0437,
+          "index_db_bytes": 1744896
+        }
+      ],
+      "suite": {
+        "command": "python bench/run_perf_eval.py --quiet --repeat 1"
+      },
+      "history_metrics": [
+        "search_p50_ms",
+        "retrieve_p50_ms",
+        "full_index_ms"
+      ]
     }
   ],
   "current": {
@@ -1017,7 +1144,7 @@
           "en": "Regression tests",
           "pt": "Testes de regressão"
         },
-        "value": 219,
+        "value": 221,
         "format": "integer",
         "precision": 0,
         "description": {

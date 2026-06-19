@@ -15,10 +15,12 @@ ROOT = Path(__file__).resolve().parents[1]
 RETRIEVAL_COMMAND = "python bench/run_eval.py --quiet --compare-golden bench/golden.json"
 WRITEBACK_COMMAND = "python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json"
 GREP_BASELINE_COMMAND = "python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json"
+PERFORMANCE_COMMAND = "python bench/run_perf_eval.py --quiet --repeat 1"
 
 DEFAULT_HISTORY_METRICS = {
     "retrieval": ["recall_at_3", "ndcg_at_3", "context_reduction"],
     "writeback": ["decision_accuracy", "target_path_accuracy", "duplicate_avoidance_rate"],
+    "performance": ["search_p50_ms", "retrieve_p50_ms", "full_index_ms"],
 }
 
 NEUTRAL_METRICS = {"writeback_cases", "tests"}
@@ -207,6 +209,38 @@ def _update_writeback(suite: dict[str, Any], payload: dict[str, Any], run_date: 
     _add_deltas(suite, history_index)
 
 
+def _update_performance(suite: dict[str, Any], payload: dict[str, Any], run_date: str, label: str) -> None:
+    suite.setdefault("suite", {})
+    suite["suite"]["command"] = PERFORMANCE_COMMAND
+    suite.setdefault("history_metrics", DEFAULT_HISTORY_METRICS["performance"])
+
+    current = suite.setdefault("current", {})
+    current["summary"] = deepcopy(payload)
+    metrics = current.setdefault("metrics", [])
+    _set_metric(metrics, "search_p50_ms", payload["search_ms"]["p50"])
+    _set_metric(metrics, "search_p95_ms", payload["search_ms"]["p95"])
+    _set_metric(metrics, "retrieve_p50_ms", payload["retrieve_ms"]["p50"])
+    _set_metric(metrics, "retrieve_p95_ms", payload["retrieve_ms"]["p95"])
+    _set_metric(metrics, "full_index_ms", payload["full_index_ms"])
+    _set_metric(metrics, "incremental_index_ms", payload["incremental_index_ms"])
+    _set_metric(metrics, "index_db_bytes", payload["index_db_bytes"])
+
+    row = {
+        "date": run_date,
+        "label": label,
+        "topics": payload["topics"],
+        "search_p50_ms": payload["search_ms"]["p50"],
+        "search_p95_ms": payload["search_ms"]["p95"],
+        "retrieve_p50_ms": payload["retrieve_ms"]["p50"],
+        "retrieve_p95_ms": payload["retrieve_ms"]["p95"],
+        "full_index_ms": payload["full_index_ms"],
+        "incremental_index_ms": payload["incremental_index_ms"],
+        "index_db_bytes": payload["index_db_bytes"],
+    }
+    history_index = _upsert_history(suite.setdefault("history", []), row)
+    _add_deltas(suite, history_index)
+
+
 def _update_legacy_fields(data: dict[str, Any], retrieval: dict[str, Any], tests: int | None) -> None:
     previous_metrics = data.get("current", {}).get("metrics", [])
     previous_tests = None
@@ -235,13 +269,16 @@ def publish_metrics(
     data = _load_json(input_path)
     retrieval_payload = _run_json(["bench/run_eval.py"])
     grep_payload = _run_json(["bench/run_grep_baseline.py", "--compare-golden", "bench/grep-golden.json"])
+    performance_payload = _run_json(["bench/run_perf_eval.py"])
     writeback_payload = _run_json(["bench/run_writeback_eval.py"])
 
     retrieval = _suite(data, "retrieval")
     writeback = _suite(data, "writeback")
+    performance = _suite(data, "performance")
     _update_retrieval(retrieval, retrieval_payload, run_date, retrieval_label)
     _attach_retrieval_baseline(retrieval, grep_payload, run_date, retrieval_label)
     _update_writeback(writeback, writeback_payload, run_date, writeback_label)
+    _update_performance(performance, performance_payload, run_date, "large-fixture-local")
     _update_legacy_fields(data, retrieval, tests)
 
     data["updated_at"] = run_date
