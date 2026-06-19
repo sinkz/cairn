@@ -393,7 +393,11 @@ apollokairn index --path ~/brain --json
 
 Use `--rebuild` na primeira configuração ou se o índice estiver corrompido. Sem
 `--rebuild`, a indexação é incremental: arquivos alterados são atualizados,
-arquivos removidos saem do índice e arquivos iguais são ignorados.
+arquivos removidos saem do índice e arquivos iguais são ignorados. Quando um
+índice válido já existe, `search` e `retrieve` rodam esse reparo incremental
+antes da query, então edições manuais em Markdown, notas novas e notas deletadas
+aparecem sem um comando `index` separado. Índices ausentes ou inválidos ainda
+exigem `apollokairn index --rebuild`.
 
 ### `apollokairn doctor`
 
@@ -681,7 +685,7 @@ python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
 python bench/run_perf_eval.py --quiet --repeat 1
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 228
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 232
 ```
 
 Tópicos do benchmark podem incluir `category`, `mode`, `compare_mode`, `ranker`

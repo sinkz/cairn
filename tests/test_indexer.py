@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from cairn.indexer import CairnIndexError, rebuild_index, search, show
+from cairn.indexer import CairnIndexError, rebuild_index, search, search_passages, show
 from cairn.vault import init_vault
 
 
@@ -539,6 +539,130 @@ class IndexerTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("removed 1", result.stdout)
             self.assertEqual(search(root, "goneneedle", limit=3), [])
+
+    def test_search_repairs_changed_document_before_query(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            concept = write_concept(
+                root,
+                "note.md",
+                (
+                    "type: Note",
+                    "title: Old needle",
+                    "description: oldneedle description.",
+                    "tags: [personal]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\noldneedle body.\n",
+            )
+            rebuild_index(root)
+            concept.write_text(
+                "---\n"
+                "type: Note\n"
+                "title: New needle\n"
+                "description: newneedle description.\n"
+                "tags: [personal]\n"
+                "timestamp: 2026-06-17T10:00:00Z\n"
+                "---\n\n"
+                "# Context\n\nnewneedle body.\n",
+                encoding="utf-8",
+            )
+
+            results = search(root, "newneedle", limit=3)
+
+            self.assertEqual([result.path for result in results], ["knowledge/note.md"])
+            self.assertEqual(search(root, "oldneedle", limit=3), [])
+
+    def test_search_repairs_new_document_before_query(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            write_concept(
+                root,
+                "indexed.md",
+                (
+                    "type: Note",
+                    "title: Indexed",
+                    "description: indexedneedle description.",
+                    "tags: [personal]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+            )
+            rebuild_index(root)
+            write_concept(
+                root,
+                "new.md",
+                (
+                    "type: Note",
+                    "title: New",
+                    "description: freshneedle description.",
+                    "tags: [personal]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\nfreshneedle body.\n",
+            )
+
+            results = search(root, "freshneedle", limit=3)
+
+            self.assertEqual([result.path for result in results], ["knowledge/new.md"])
+
+    def test_search_repairs_removed_document_before_query(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="personal")
+            concept = write_concept(
+                root,
+                "gone.md",
+                (
+                    "type: Note",
+                    "title: Gone",
+                    "description: goneneedle description.",
+                    "tags: [personal]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\ngoneneedle body.\n",
+            )
+            rebuild_index(root)
+            concept.unlink()
+
+            results = search(root, "goneneedle", limit=3)
+
+            self.assertEqual(results, [])
+
+    def test_search_passages_repairs_changed_document_before_query(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            concept = write_concept(
+                root,
+                "deploy.md",
+                (
+                    "type: Runbook",
+                    "title: Deploy",
+                    "description: Old deploy note.",
+                    "tags: [deploy]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Resolution\n\noldpassage only.\n",
+            )
+            rebuild_index(root)
+            concept.write_text(
+                "---\n"
+                "type: Runbook\n"
+                "title: Deploy\n"
+                "description: New deploy note.\n"
+                "tags: [deploy]\n"
+                "timestamp: 2026-06-17T10:00:00Z\n"
+                "---\n\n"
+                "# Resolution\n\nnewpassage only.\n",
+                encoding="utf-8",
+            )
+
+            results = search_passages(root, "newpassage", limit=3)
+
+            self.assertEqual([result.path for result in results], ["knowledge/deploy.md"])
+            self.assertIn("newpassage", results[0].text)
 
     def test_cli_search_missing_index_returns_concise_error(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

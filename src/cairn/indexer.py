@@ -154,6 +154,13 @@ def _file_signature(path: Path) -> tuple[int, int, str]:
     return stat.st_mtime_ns, stat.st_size, digest
 
 
+def _same_mtime_size(path: Path, row: tuple[int, int, str] | sqlite3.Row | None) -> bool:
+    if row is None:
+        return False
+    stat = path.stat()
+    return row[0] == stat.st_mtime_ns and row[1] == stat.st_size
+
+
 def _delete_doc(con: sqlite3.Connection, rel: str) -> None:
     con.execute("DELETE FROM docs WHERE path = ?", (rel,))
     con.execute("DELETE FROM passages WHERE path = ?", (rel,))
@@ -242,9 +249,11 @@ def sync_index(root: Path, rebuild: bool = False) -> IndexStats:
             skipped = 0
             paths = _concept_files(root)
             current_rel = {path.relative_to(root).as_posix() for path in paths}
-            indexed_rel = {
-                row[0] for row in con.execute("SELECT path FROM index_meta").fetchall()
+            indexed = {
+                row[0]: (row[1], row[2], row[3])
+                for row in con.execute("SELECT path, mtime_ns, size, sha256 FROM index_meta").fetchall()
             }
+            indexed_rel = set(indexed)
 
             for rel in sorted(indexed_rel - current_rel):
                 _delete_doc(con, rel)
@@ -252,11 +261,11 @@ def sync_index(root: Path, rebuild: bool = False) -> IndexStats:
 
             for path in paths:
                 rel = path.relative_to(root).as_posix()
+                row = indexed.get(rel)
+                if _same_mtime_size(path, row):
+                    skipped += 1
+                    continue
                 mtime_ns, size, sha256 = _file_signature(path)
-                row = con.execute(
-                    "SELECT mtime_ns, size, sha256 FROM index_meta WHERE path = ?",
-                    (rel,),
-                ).fetchone()
                 if row == (mtime_ns, size, sha256):
                     skipped += 1
                     continue
@@ -275,6 +284,26 @@ def sync_index(root: Path, rebuild: bool = False) -> IndexStats:
 
 def rebuild_index(root: Path) -> None:
     sync_index(root, rebuild=True)
+
+
+def repair_stale_index(root: Path) -> IndexStats | None:
+    root = Path(root)
+    db = _db_path(root)
+    if not db.exists() or not db.is_file():
+        return None
+    try:
+        con = sqlite3.connect(db)
+    except sqlite3.Error:
+        return None
+    try:
+        try:
+            if not _has_current_schema(con):
+                return None
+        except sqlite3.Error:
+            return None
+    finally:
+        con.close()
+    return sync_index(root)
 
 
 def _search_doc_rows(con: sqlite3.Connection, fts_query: str, candidate_limit: int) -> list[sqlite3.Row]:
@@ -421,6 +450,7 @@ def search(
     query_text = fts_query(query)
     if not query_text:
         return []
+    repair_stale_index(root)
     db = _db_path(root)
     if not db.exists():
         raise CairnIndexError(_INDEX_ERROR)
@@ -482,6 +512,7 @@ def search_passages(
     query_text = fts_query(query)
     if not query_text:
         return []
+    repair_stale_index(root)
     db = _db_path(root)
     if not db.exists():
         raise CairnIndexError(_INDEX_ERROR)
