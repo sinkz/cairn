@@ -42,7 +42,7 @@ python bench/agent/run_agent_eval.py --mock --fixture bench/fixtures/vault-large
 python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
 python bench/run_perf_eval.py --quiet --repeat 1
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 248
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 251
 git diff --check
 ```
 

@@ -687,7 +687,7 @@ python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
 python bench/run_perf_eval.py --quiet --repeat 1
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 248
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 251
 ```
 
 Benchmark topics may include `category`, `mode`, `compare_mode`, `ranker`, and

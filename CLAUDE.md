@@ -33,9 +33,9 @@ Every subcommand supports `--help` and `--json`. Use `--path <vault>` or
 ## Develop this repo
 
 ```bash
-python -m pip install -e .     # editable install
-python -m pytest -q            # full suite
-apollokairn --help             # 21 subcommands, all self-describing via --help/--json
+python -m pip install -e .         # editable install
+python -m unittest discover -v     # full suite (dependency-free; the command CI runs)
+apollokairn --help                 # 21 subcommands, all self-describing via --help/--json
 ```
 
 - Core code: `src/cairn/`. Agent assets: `agentic/`. Docs: `docs/guides/`.
