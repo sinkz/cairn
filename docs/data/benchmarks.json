@@ -1211,9 +1211,9 @@
             },
             "format": "decimal",
             "precision": 4,
-            "value": 121.3946,
+            "value": 124.5573,
             "delta": {
-              "value": 1.3504,
+              "value": 4.5131,
               "direction": "up",
               "trend": "better",
               "baseline_date": "2026-06-19",
@@ -1228,9 +1228,9 @@
             },
             "format": "decimal",
             "precision": 4,
-            "value": 126.5766,
+            "value": 143.5389,
             "delta": {
-              "value": 1.8698,
+              "value": 18.8321,
               "direction": "up",
               "trend": "better",
               "baseline_date": "2026-06-19",
@@ -1245,9 +1245,9 @@
             },
             "format": "decimal",
             "precision": 4,
-            "value": 122.4906,
+            "value": 126.7099,
             "delta": {
-              "value": 1.2212,
+              "value": 5.4405,
               "direction": "up",
               "trend": "better",
               "baseline_date": "2026-06-19",
@@ -1262,9 +1262,9 @@
             },
             "format": "decimal",
             "precision": 4,
-            "value": 127.5381,
+            "value": 144.5785,
             "delta": {
-              "value": 0.2034,
+              "value": 17.2438,
               "direction": "up",
               "trend": "better",
               "baseline_date": "2026-06-19",
@@ -1279,9 +1279,9 @@
             },
             "format": "decimal",
             "precision": 4,
-            "value": 934.1572,
+            "value": 873.75,
             "delta": {
-              "value": 163.6249,
+              "value": 103.2177,
               "direction": "up",
               "trend": "better",
               "baseline_date": "2026-06-19",
@@ -1296,9 +1296,9 @@
             },
             "format": "decimal",
             "precision": 4,
-            "value": 160.613,
+            "value": 144.08,
             "delta": {
-              "value": 17.0186,
+              "value": 0.4856,
               "direction": "up",
               "trend": "better",
               "baseline_date": "2026-06-19",
@@ -1328,8 +1328,8 @@
           "topics": 80,
           "repeat": 1,
           "limit": 3,
-          "full_index_ms": 934.1572,
-          "incremental_index_ms": 160.613,
+          "full_index_ms": 873.75,
+          "incremental_index_ms": 144.08,
           "incremental_index": {
             "updated": 1,
             "removed": 0,
@@ -1338,17 +1338,17 @@
           "index_db_bytes": 1744896,
           "search_ms": {
             "samples": 80,
-            "min": 116.8004,
-            "p50": 121.3946,
-            "p95": 126.5766,
-            "max": 139.2098
+            "min": 119.5488,
+            "p50": 124.5573,
+            "p95": 143.5389,
+            "max": 168.3198
           },
           "retrieve_ms": {
             "samples": 80,
-            "min": 118.565,
-            "p50": 122.4906,
-            "p95": 127.5381,
-            "max": 130.6203
+            "min": 118.5822,
+            "p50": 126.7099,
+            "p95": 144.5785,
+            "max": 218.1438
           }
         }
       },
@@ -1369,12 +1369,12 @@
           "date": "2026-06-20",
           "label": "large-fixture-local",
           "topics": 80,
-          "search_p50_ms": 121.3946,
-          "search_p95_ms": 126.5766,
-          "retrieve_p50_ms": 122.4906,
-          "retrieve_p95_ms": 127.5381,
-          "full_index_ms": 934.1572,
-          "incremental_index_ms": 160.613,
+          "search_p50_ms": 124.5573,
+          "search_p95_ms": 143.5389,
+          "retrieve_p50_ms": 126.7099,
+          "retrieve_p95_ms": 144.5785,
+          "full_index_ms": 873.75,
+          "incremental_index_ms": 144.08,
           "index_db_bytes": 1744896
         }
       ],

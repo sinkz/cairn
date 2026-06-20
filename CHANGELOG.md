@@ -6,6 +6,30 @@ All notable ApolloKairn changes are tracked here.
 
 No changes yet.
 
+## 0.2.1 - 2026-06-20
+
+### Added
+
+- Added `apollokairn agent install claude-code` and `agent doctor
+  claude-code` for Claude Code skill installation in user or repo scope.
+- Added `apollokairn usage evidence`, a local redacted decision pack for
+  reviewing no-result searches, no-source retrieves, passage usage, and whether
+  ranking, RRF, or embeddings have enough real-use evidence for discussion.
+- Added `apollokairn vocab lookup` to inspect approved glossary expansions used
+  by search and retrieval.
+
+### Changed
+
+- Agent-facing skills and generated guides now teach the `usage evidence`
+  workflow and warn that usage logs are telemetry, not answer-success labels.
+- `similar --json` documentation now treats `similarity` as the source of truth
+  for ordering and thresholding while keeping legacy `score` compatibility.
+
+### Fixed
+
+- Search and retrieval now relax only zero-hit terms and abstain when relaxation
+  drops too much query signal, preserving no-answer behavior for noisy prompts.
+
 ## 0.2.0 - 2026-06-19
 
 ### Added
