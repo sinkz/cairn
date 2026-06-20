@@ -23,10 +23,10 @@ class SimilarResult:
     title: str
     type: str
     tags: list[str]
-    score: float
-    snippet: str
     similarity: float
     kind: str
+    score: float
+    snippet: str
 
 
 def _tokens(text: str) -> set[str]:

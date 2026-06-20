@@ -12,7 +12,7 @@
   <p>
     <img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white">
     <img alt="Runtime dependencies: zero" src="https://img.shields.io/badge/runtime_dependencies-0-2f6f4e">
-    <img alt="Regression tests: 247" src="https://img.shields.io/badge/tests-247-3b6ea8">
+    <img alt="Regression tests: 248" src="https://img.shields.io/badge/tests-248-3b6ea8">
     <img alt="Recall at 3: 1.00" src="https://img.shields.io/badge/Recall%403-1.00-2f6f4e">
     <img alt="Context reduction: 92.78%" src="https://img.shields.io/badge/context_reduction-92.78%25-8a5a44">
     <img alt="Writeback decision accuracy: 100%" src="https://img.shields.io/badge/writeback_decisions-100%25-285da8">
@@ -52,7 +52,7 @@ writeback decisions for update-vs-create workflows.
 | Comparison reduction | `53.73%` | Reduction measured in configured comparison runs. |
 | Writeback decision accuracy | `100%` | Correct create, update, no-op, and conflict decisions in the fixture set. |
 | Duplicate avoidance | `100%` | Existing reusable notes are updated or preserved instead of duplicated. |
-| Regression tests | `247` | Unit and workflow tests run before publishing the current page. |
+| Regression tests | `248` | Unit and workflow tests run before publishing the current page. |
 
 Benchmark data is also published on the website through
 [`docs/data/benchmarks.json`](docs/data/benchmarks.json).
@@ -62,7 +62,7 @@ python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
 python bench/run_perf_eval.py --quiet --repeat 1
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 247
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 248
 ```
 
 ## Quick Install
@@ -262,6 +262,9 @@ apollokairn update knowledge/deploy-403-after-token-rotation.md \
   --append "Add the verification step used in the latest incident."
 ```
 
+For `similar --json`, use `similarity` and `kind`; `score` is legacy
+compatibility and not confidence.
+
 For longer updates, use `--append-file PATH_TO_APPEND.md` or pipe content with
 `--append-stdin`.
 Agents can add `--json`, preview writes with `--dry-run`, and pass
@@ -338,7 +341,7 @@ python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
 python bench/run_perf_eval.py --quiet --repeat 1
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 247
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 248
 ```
 
 The benchmarks check ranking quality, golden result prefixes, token budgets,

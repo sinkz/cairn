@@ -91,6 +91,56 @@ class SimilarTests(unittest.TestCase):
             self.assertGreaterEqual(payload[0]["similarity"], 0.2)
             self.assertEqual(payload[0]["kind"], "duplicate_candidate")
 
+    def test_cli_similar_json_leads_with_similarity_and_sorts_descending(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            (root / "knowledge" / "connection-pool-timeout.md").write_text(
+                "---\n"
+                "type: Runbook\n"
+                "title: Connection pool timeout under load\n"
+                "description: Database pool exhaustion during peak traffic.\n"
+                "tags: [database]\n"
+                "timestamp: 2026-06-17T10:00:00Z\n"
+                "systems: [postgres]\n"
+                "---\n\n"
+                "# Context\n\n"
+                "Connection pool timeout under load because the database pool is exhausted.\n",
+                encoding="utf-8",
+            )
+            (root / "knowledge" / "related-database-note.md").write_text(
+                "---\n"
+                "type: Note\n"
+                "title: Database latency checks\n"
+                "description: General database triage checklist.\n"
+                "tags: [database]\n"
+                "timestamp: 2026-06-17T11:00:00Z\n"
+                "systems: [postgres]\n"
+                "---\n\n"
+                "# Context\n\n"
+                "Database latency checks include pool size, query duration, and lock waits.\n",
+                encoding="utf-8",
+            )
+            run_cairn(root, "index", "--rebuild")
+
+            result = run_cairn(
+                root,
+                "similar",
+                "Connection pool timeout under load because the database pool is exhausted.",
+                "--limit",
+                "2",
+                "--json",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            keys = list(payload[0])
+            self.assertLess(keys.index("similarity"), keys.index("score"))
+            self.assertLess(keys.index("kind"), keys.index("score"))
+            self.assertEqual(payload[0]["kind"], "duplicate_candidate")
+            similarities = [item["similarity"] for item in payload]
+            self.assertEqual(similarities, sorted(similarities, reverse=True))
+
     def test_cli_similar_finds_near_duplicate_with_extra_terms(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

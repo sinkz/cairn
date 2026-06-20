@@ -545,7 +545,10 @@ apollokairn similar "deploy forbidden token" --path ~/brain --json
 Resultados incluem o campo `kind`. `duplicate_candidate` indica que o match é
 forte o bastante para preferir atualizar a nota existente. `related` indica que
 a nota é contexto útil, mas o agente deve inspecionar antes de decidir entre
-atualizar ou criar uma nova nota.
+atualizar ou criar uma nova nota. Em `similar`, `similarity` é o valor
+normalizado de 0 a 1 para limiar ou ordenação, e `kind` deriva dele. O campo
+JSON `score` é legado de resultados no estilo busca e não deve ser tratado como
+confiança.
 
 ### `apollokairn vocab`
 
@@ -698,7 +701,7 @@ python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
 python bench/run_perf_eval.py --quiet --repeat 1
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 247
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 248
 ```
 
 Tópicos do benchmark podem incluir `category`, `mode`, `compare_mode`, `ranker`
