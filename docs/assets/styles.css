@@ -393,6 +393,37 @@ h3 {
   max-width: 680px;
 }
 
+.section-figure {
+  background: var(--paper-strong);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin: 0 0 32px;
+  max-width: 960px;
+  overflow: hidden;
+}
+
+.section-figure.full {
+  grid-column: 1 / -1;
+  max-width: none;
+}
+
+.section-figure img {
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+.section-figure figcaption {
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  padding: 13px 20px;
+  text-transform: uppercase;
+}
+
 .benchmark-panel {
   align-items: end;
   background: var(--black);

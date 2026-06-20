@@ -29,11 +29,10 @@
         <span>ApolloKairn</span>
       </a>
       <nav class="nav-links" aria-label="Page sections">
-        <a href="learn.html">Learn</a>
+        <a href="#agents" data-lang-content="en">Agents</a>
+        <a href="#agents" data-lang-content="pt">Agentes</a>
         <a href="#install">Install</a>
         <a href="benchmarks.html">Benchmarks</a>
-        <a href="#workflow">Workflow</a>
-        <a href="#roadmap">Roadmap</a>
         <a href="https://github.com/sinkz/apollokairn">GitHub</a>
       </nav>
       <div class="language-switch" aria-label="Language">
@@ -80,9 +79,6 @@
             <a class="button primary" href="#install" data-lang-content="pt">Instalar</a>
             <a class="button secondary" href="learn.html" data-lang-content="en">How it works</a>
             <a class="button secondary" href="learn.html" data-lang-content="pt">Como funciona</a>
-            <a class="button secondary" href="benchmarks.html" data-lang-content="en">See benchmarks</a>
-            <a class="button secondary" href="benchmarks.html" data-lang-content="pt">Ver benchmarks</a>
-            <a class="button secondary" href="https://github.com/sinkz/apollokairn">GitHub</a>
           </div>
         </div>
       </section>
@@ -100,8 +96,8 @@
         </div>
         <div class="proof-item">
           <strong>Any agent</strong>
-          <span data-lang-content="en">Codex, Claude, OpenCode, Copilot, or shell-capable harnesses.</span>
-          <span data-lang-content="pt">Codex, Claude, OpenCode, Copilot ou harnesses com shell.</span>
+          <span data-lang-content="en">Claude Code, Codex, Hermes, Copilot, OpenCode, or shell-capable harnesses.</span>
+          <span data-lang-content="pt">Claude Code, Codex, Hermes, Copilot, OpenCode ou harnesses com shell.</span>
         </div>
       </section>
 
@@ -148,6 +144,48 @@
         <a class="text-link" href="guides/quick-install.pt-BR.md" data-lang-content="pt">Ver solução de problemas de instalação</a>
       </section>
 
+      <section class="section install-section" id="agents">
+        <div class="section-heading compact">
+          <p class="eyebrow" data-lang-content="en">Start with agents</p>
+          <p class="eyebrow" data-lang-content="pt">Comece com agentes</p>
+          <h2 data-lang-content="en">Built to be driven by a coding agent.</h2>
+          <h2 data-lang-content="pt">Feito para ser conduzido por um agente de código.</h2>
+          <p data-lang-content="en">
+            Install the skill once and the agent learns the loop: it resolves the
+            vault, searches, retrieves a budgeted packet, then writes back — no
+            command memorization. Then you just ask.
+          </p>
+          <p data-lang-content="pt">
+            Instale a skill uma vez e o agente aprende o fluxo: ele resolve o vault,
+            busca, recupera um pacote com orçamento e registra de volta — sem decorar
+            comandos. Depois é só perguntar.
+          </p>
+        </div>
+
+        <div class="install-grid">
+          <article class="install-card">
+            <span>Claude Code</span>
+            <code>apollokairn agent install claude-code</code>
+          </article>
+          <article class="install-card">
+            <span>Codex</span>
+            <code>apollokairn agent install codex</code>
+          </article>
+          <article class="install-card">
+            <span>Hermes</span>
+            <code>apollokairn agent install hermes</code>
+          </article>
+          <article class="install-card">
+            <span data-lang-content="en">Copilot, OpenCode, …</span>
+            <span data-lang-content="pt">Copilot, OpenCode, …</span>
+            <code>apollokairn setup-agent copilot</code>
+          </article>
+        </div>
+
+        <a class="text-link" href="https://github.com/sinkz/apollokairn/blob/main/docs/guides/adapters.md" data-lang-content="en">Read the adapter guide</a>
+        <a class="text-link" href="https://github.com/sinkz/apollokairn/blob/main/docs/guides/adapters.pt-BR.md" data-lang-content="pt">Ler o guia de adapters</a>
+      </section>
+
       <section class="section benchmark-preview-section" id="benchmarks">
         <div class="section-heading compact">
           <p class="eyebrow" data-lang-content="en">Measured behavior</p>
@@ -163,6 +201,15 @@
             histórico, comandos, definições de métricas e JSON bruto.
           </p>
         </div>
+
+        <figure class="section-figure" data-lang-content="pt">
+          <img
+            src="assets/diagrams/benchmarks.png"
+            alt="Benchmark ApolloKairn: fixture, query, ranking, golden"
+            loading="lazy"
+          />
+          <figcaption>Benchmark é contrato de comportamento — fixture, query, ranking, golden.</figcaption>
+        </figure>
 
         <div class="benchmark-preview-grid" id="benchmark-preview-cards" aria-live="polite">
           <article class="metric-card">
@@ -207,7 +254,16 @@
           </p>
         </div>
 
-        <div class="workflow-grid">
+        <figure class="section-figure full" data-lang-content="pt">
+          <img
+            src="assets/diagrams/workflow.png"
+            alt="Fluxo do agente ApolloKairn: vault current, search, retrieve, writeback"
+            loading="lazy"
+          />
+          <figcaption>O agente usa um contrato — vault current, search, retrieve, writeback.</figcaption>
+        </figure>
+
+        <div class="workflow-grid" data-lang-content="en">
           <article class="workflow-card accent-green">
             <span>01</span>
             <h3 data-lang-content="en">Search</h3>
@@ -235,35 +291,6 @@
             <h3 data-lang-content="pt">Registrar</h3>
             <p data-lang-content="en">Update the closest note or capture new reusable knowledge.</p>
             <p data-lang-content="pt">Atualize a nota mais próxima ou registre novo conhecimento.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="section use-cases">
-        <div class="section-heading">
-          <p class="eyebrow" data-lang-content="en">Vault scope</p>
-          <p class="eyebrow" data-lang-content="pt">Escopo do vault</p>
-          <h2 data-lang-content="en">The same structure works for individual notes and shared team knowledge.</h2>
-          <h2 data-lang-content="pt">A mesma estrutura funciona para notas individuais e conhecimento compartilhado de time.</h2>
-        </div>
-        <div class="use-case-grid">
-          <article>
-            <h3 data-lang-content="en">Personal second brain</h3>
-            <h3 data-lang-content="pt">Segundo cérebro pessoal</h3>
-            <p data-lang-content="en">Keep recurring problems, learning notes, references, and procedures searchable.</p>
-            <p data-lang-content="pt">Mantenha problemas recorrentes, aprendizados, referências e processos pesquisáveis.</p>
-          </article>
-          <article>
-            <h3 data-lang-content="en">Engineering teams</h3>
-            <h3 data-lang-content="pt">Times de engenharia</h3>
-            <p data-lang-content="en">Capture bug fixes, incidents, runbooks, architecture decisions, and library gotchas.</p>
-            <p data-lang-content="pt">Registre bugs, incidentes, runbooks, decisões de arquitetura e detalhes de bibliotecas.</p>
-          </article>
-          <article>
-            <h3 data-lang-content="en">Support and product</h3>
-            <h3 data-lang-content="pt">Suporte e produto</h3>
-            <p data-lang-content="en">Document access flows, escalation paths, product rules, and customer-facing procedures.</p>
-            <p data-lang-content="pt">Documente acessos, escalonamentos, regras de produto e procedimentos de atendimento.</p>
           </article>
         </div>
       </section>
@@ -304,8 +331,6 @@
         </div>
         <a class="text-link" href="https://github.com/sinkz/apollokairn/blob/main/ROADMAP.md" data-lang-content="en">Read the full roadmap</a>
         <a class="text-link" href="https://github.com/sinkz/apollokairn/blob/main/ROADMAP.md" data-lang-content="pt">Ler o roadmap completo</a>
-        <a class="text-link" href="https://github.com/sinkz/apollokairn/blob/main/docs/guides/adapters.md" data-lang-content="en">Read the adapter guide</a>
-        <a class="text-link" href="https://github.com/sinkz/apollokairn/blob/main/docs/guides/adapters.pt-BR.md" data-lang-content="pt">Ler o guia de adapters</a>
       </section>
     </main>
 
