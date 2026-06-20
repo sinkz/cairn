@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 SKILL_NAME = "apollokairn-vault"
-SUPPORTED_AGENTS = ("codex", "hermes")
+SUPPORTED_AGENTS = ("codex", "hermes", "claude-code")
 SUPPORTED_MODES = ("copy", "symlink")
 SUPPORTED_SCOPES = ("user", "repo")
 
@@ -92,9 +92,10 @@ README_MD = """# ApolloKairn Agentic Assets
 
 This folder contains small, versioned agent instructions for ApolloKairn.
 
-- `skills/apollokairn-vault` is the shared Agent Skill for Codex and Hermes.
+- `skills/apollokairn-vault` is the shared Agent Skill for Codex, Hermes, and Claude Code.
 - `apollokairn agent install codex` installs it for Codex.
 - `apollokairn agent install hermes` installs it for Hermes.
+- `apollokairn agent install claude-code` installs it for Claude Code (`~/.claude/skills`, or `.claude/skills` with `--scope repo`).
 
 The CLI embeds the same skill text so standalone binaries can install it without
 needing a source checkout.
@@ -157,6 +158,10 @@ def default_skills_dir(agent: str, scope: str, repo_path: str | Path | None = No
         if scope == "repo":
             return Path(repo_path or Path.cwd()).expanduser().resolve() / ".agents" / "skills"
         return Path.home() / ".agents" / "skills"
+    if agent == "claude-code":
+        if scope == "repo":
+            return Path(repo_path or Path.cwd()).expanduser().resolve() / ".claude" / "skills"
+        return Path.home() / ".claude" / "skills"
     if scope != "user":
         raise AgenticError("Hermes install currently supports user scope only")
     return Path.home() / ".hermes" / "skills"

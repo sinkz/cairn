@@ -140,6 +140,41 @@ class AgenticTests(unittest.TestCase):
             self.assertTrue(payload["would_change"])
             self.assertFalse((target_dir / "apollokairn-vault").exists())
 
+    def test_install_claude_code_user_copy_to_custom_target(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            target_dir = Path(tmp) / "claude-skills"
+
+            result = run_cairn("agent", "install", "claude-code", "--target-dir", str(target_dir), "--json")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            skill_dir = target_dir / "apollokairn-vault"
+            self.assertEqual(payload["agent"], "claude-code")
+            self.assertEqual(payload["mode"], "copy")
+            self.assertTrue(payload["changed"])
+            self.assertTrue((skill_dir / "SKILL.md").is_file())
+            self.assertTrue((skill_dir / "references" / "commands.md").is_file())
+
+    def test_install_claude_code_repo_scope_uses_repo_claude_skills(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            repo.mkdir()
+
+            result = run_cairn(
+                "agent", "install", "claude-code", "--scope", "repo", "--path", str(repo), "--json"
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            skill_dir = repo / ".claude" / "skills" / "apollokairn-vault"
+            self.assertEqual(Path(payload["skills_dir"]), repo / ".claude" / "skills")
+            self.assertTrue((skill_dir / "SKILL.md").is_file())
+
+    def test_default_skills_dir_claude_code_user_scope(self) -> None:
+        from cairn.agentic import default_skills_dir
+
+        self.assertEqual(default_skills_dir("claude-code", "user"), Path.home() / ".claude" / "skills")
+
 
 if __name__ == "__main__":
     unittest.main()

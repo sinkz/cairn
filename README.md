@@ -144,17 +144,20 @@ vault, then the current directory for backward compatibility.
 
 ## Optional Agent Skill
 
-Install the shared ApolloKairn skill when you want Codex or Hermes to know the
-CLI workflow from any repository:
+Install the shared ApolloKairn skill when you want Codex, Hermes, or Claude Code
+to know the CLI workflow from any repository:
 
 ```bash
 apollokairn agent install codex
 apollokairn agent install hermes
+apollokairn agent install claude-code
 apollokairn agent doctor --json
 ```
 
-The installer copies a small `apollokairn-vault` skill by default and is safe to
-run again. Use `--mode symlink` only when developing from a source checkout.
+`claude-code` installs the skill into `~/.claude/skills/apollokairn-vault` (user
+scope), or into `.claude/skills` of the current repo with `--scope repo`. The
+installer copies a small `apollokairn-vault` skill by default and is safe to run
+again. Use `--mode symlink` only when developing from a source checkout.
 Vault-local guide files are still available through `apollokairn setup-agent`.
 
 ## Install From Source
