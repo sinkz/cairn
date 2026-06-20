@@ -268,6 +268,10 @@ def build_parser(prog: str = PUBLIC_COMMAND) -> argparse.ArgumentParser:
     vocab_suggest.add_argument("--limit", type=int, default=5)
     vocab_suggest.add_argument("--json", action="store_true")
     _add_vault_path(vocab_suggest)
+    vocab_lookup = vocab_sub.add_parser("lookup", help="Show approved glossary entries matching a query.")
+    vocab_lookup.add_argument("query")
+    vocab_lookup.add_argument("--json", action="store_true")
+    _add_vault_path(vocab_lookup)
     vocab_validate = vocab_sub.add_parser("validate", help="Validate glossary terms and aliases.")
     vocab_validate.add_argument("--json", action="store_true")
     _add_vault_path(vocab_validate)
@@ -740,7 +744,7 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
                 print(f"updated {result.path}")
         return 0
     if args.command == "vocab":
-        from cairn.vocabulary import add_alias, add_term, suggest_terms, validate_terms
+        from cairn.vocabulary import add_alias, add_term, lookup_terms, suggest_terms, validate_terms
 
         if args.vocab_command == "add-term":
             try:
@@ -781,6 +785,22 @@ def main(argv: list[str] | None = None, invoked_as: str | None = None) -> int:
                     print(f"{item.term} -> {item.alias} ({item.path}, score={item.score:.4f})")
                     for evidence in item.evidence:
                         print(f"  - {evidence}")
+            return 0
+        if args.vocab_command == "lookup":
+            report = lookup_terms(root, args.query)
+            _record_usage(
+                root,
+                "vocab.lookup",
+                started_at,
+                data={"query": args.query, "match_count": len(report.matches)},
+            )
+            if args.json:
+                _print_json(report)
+            else:
+                for item in report.matches:
+                    matched = ", ".join(item.matched)
+                    expansion = ", ".join(item.expansion)
+                    print(f"{item.term} :: matched [{matched}] -> expands [{expansion}]")
             return 0
         if args.vocab_command == "validate":
             report = validate_terms(root)

@@ -230,10 +230,13 @@ Gerencie o glossário com:
 apollokairn vocab add-term Kubernetes --alias k8s --alias kube --path ~/brain
 apollokairn vocab add-alias Kubernetes k8s-prod --path ~/brain
 apollokairn vocab add-term Kubernetes --alias k8s --path ~/brain --json
+apollokairn vocab lookup "k8s rollback" --path ~/brain --json
 apollokairn vocab suggest "kubernetes rollback" --path ~/brain --json
 apollokairn vocab validate --path ~/brain --json
 ```
 
+`vocab lookup` inspeciona termos e aliases aprovados do glossário que batem com
+uma consulta.
 `vocab suggest` nunca escreve no vault. Ele relata candidatos determinísticos a
 partir das notas locais para uma pessoa ou agente decidir se o alias deve virar
 vocabulário aprovado.
@@ -552,6 +555,7 @@ Gerencia o glossário determinístico no topo do vault.
 apollokairn vocab add-term Kubernetes --alias k8s --alias kube --path ~/brain
 apollokairn vocab add-alias Kubernetes kube --path ~/brain
 apollokairn vocab add-alias Kubernetes kube --path ~/brain --json
+apollokairn vocab lookup "k8s rollback" --path ~/brain --json
 apollokairn vocab suggest "kubernetes rollback" --path ~/brain --limit 5
 apollokairn vocab validate --path ~/brain
 ```
@@ -694,7 +698,7 @@ python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
 python bench/run_perf_eval.py --quiet --repeat 1
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 245
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 247
 ```
 
 Tópicos do benchmark podem incluir `category`, `mode`, `compare_mode`, `ranker`

@@ -12,7 +12,7 @@
   <p>
     <img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white">
     <img alt="Dependências de runtime: zero" src="https://img.shields.io/badge/dependencias_runtime-0-2f6f4e">
-    <img alt="Testes de regressão: 245" src="https://img.shields.io/badge/testes-245-3b6ea8">
+    <img alt="Testes de regressão: 247" src="https://img.shields.io/badge/testes-247-3b6ea8">
     <img alt="Recall at 3: 1.00" src="https://img.shields.io/badge/Recall%403-1.00-2f6f4e">
     <img alt="Redução de contexto: 92.78%" src="https://img.shields.io/badge/reducao_contexto-92.78%25-8a5a44">
     <img alt="Acurácia de decisão de escrita: 100%" src="https://img.shields.io/badge/escrita_decisoes-100%25-285da8">
@@ -53,7 +53,7 @@ atualizar vs criar.
 | Redução em comparativos | `53.73%` | Redução medida nas rodadas comparativas configuradas. |
 | Acurácia de decisão de escrita | `100%` | Decisões corretas de criar, atualizar, no-op e conflito no conjunto de fixtures. |
 | Prevenção de duplicatas | `100%` | Notas reutilizáveis existentes são atualizadas ou preservadas em vez de duplicadas. |
-| Testes de regressão | `245` | Testes unitários e de workflow rodados antes da publicação atual. |
+| Testes de regressão | `247` | Testes unitários e de workflow rodados antes da publicação atual. |
 
 Os dados do benchmark também são publicados no site por
 [`docs/data/benchmarks.json`](docs/data/benchmarks.json).
@@ -63,7 +63,7 @@ python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
 python bench/run_perf_eval.py --quiet --repeat 1
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 245
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 247
 ```
 
 ## Instalação Rápida
@@ -239,9 +239,14 @@ determinística:
 
 ```bash
 apollokairn vocab add-term Kubernetes --alias k8s --alias kube --path CAMINHO_DO_VAULT
-apollokairn vocab validate --path CAMINHO_DO_VAULT
+apollokairn vocab lookup "k8s rollback" --path CAMINHO_DO_VAULT --json
 apollokairn vocab suggest "kubernetes rollback" --path CAMINHO_DO_VAULT --json
+apollokairn vocab validate --path CAMINHO_DO_VAULT
 ```
+
+`vocab lookup` inspeciona entradas aprovadas do glossário que batem com a
+consulta. `vocab suggest` é uma ajuda de autoria para propor novos aliases a
+partir de evidência nas notas locais.
 
 ### 3. Recuperar contexto compacto
 
@@ -339,7 +344,7 @@ python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
 python bench/run_perf_eval.py --quiet --repeat 1
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 245
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 247
 ```
 
 Os benchmarks verificam qualidade de ranking, prefixos golden, orçamentos de

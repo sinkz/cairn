@@ -326,6 +326,46 @@ class VocabularyTests(unittest.TestCase):
             self.assertEqual(suggestion["path"], "knowledge/rollback-k8s.md")
             self.assertIn("shared terms", " ".join(suggestion["evidence"]))
 
+    def test_vocab_lookup_json_reports_registered_aliases_for_query(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_glossary(root)
+
+            result = run_cairn(root, "vocab", "lookup", "k8s rollback", "--json")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["query"], "k8s rollback")
+            matches = {item["term"]: item for item in payload["matches"]}
+            self.assertEqual(matches["Kubernetes"]["aliases"], ["k8s", "kube"])
+            self.assertEqual(matches["Kubernetes"]["matched"], ["k8s"])
+            self.assertEqual(matches["Kubernetes"]["expansion"], ["Kubernetes", "k8s", "kube"])
+            self.assertEqual(matches["Rollback"]["matched"], ["Rollback"])
+
+    def test_vocab_lookup_json_only_reports_approved_terms(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            (root / "glossary.md").write_text(
+                "# Glossary\n\n"
+                "## Forbidden\n\n"
+                "aliases: access denied, denied\n"
+                "status: approved\n\n"
+                "## Draft Secret\n\n"
+                "aliases: xyzzy\n"
+                "status: draft\n",
+                encoding="utf-8",
+            )
+
+            result = run_cairn(root, "vocab", "lookup", "access denied xyzzy", "--json")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual([item["term"] for item in payload["matches"]], ["Forbidden"])
+            self.assertIn("access denied", payload["matches"][0]["matched"])
+            self.assertNotIn("Draft Secret", [item["term"] for item in payload["matches"]])
+
     def test_glossary_is_reserved_and_does_not_break_vault_validation(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

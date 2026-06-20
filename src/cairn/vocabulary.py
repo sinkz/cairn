@@ -55,6 +55,22 @@ class VocabularySuggestionReport:
     suggestions: list[VocabularySuggestion]
 
 
+@dataclass(frozen=True)
+class VocabularyLookupMatch:
+    term: str
+    aliases: list[str]
+    status: str
+    scope: str
+    matched: list[str]
+    expansion: list[str]
+
+
+@dataclass(frozen=True)
+class VocabularyLookupReport:
+    query: str
+    matches: list[VocabularyLookupMatch]
+
+
 def _normalize(value: str) -> str:
     normalized = unicodedata.normalize("NFKD", value.casefold())
     return "".join(char for char in normalized if not unicodedata.combining(char))
@@ -267,6 +283,34 @@ def expanded_fts_and_query(root: Path, query: str) -> str:
     return " AND ".join(parts)
 
 
+def lookup_terms(root: Path, query: str) -> VocabularyLookupReport:
+    query_norms = {_normalize(token) for token in query_tokens(query)}
+    matches: list[VocabularyLookupMatch] = []
+    for term in load_terms(root):
+        if term.status.casefold() != "approved":
+            continue
+        values = [term.title, *term.aliases]
+        matched: list[str] = []
+        for value in values:
+            tokens = list(query_tokens(value))
+            if tokens and all(_normalize(token) in query_norms for token in tokens):
+                matched.append(value)
+        if not matched:
+            continue
+        matches.append(
+            VocabularyLookupMatch(
+                term=term.title,
+                aliases=list(term.aliases),
+                status=term.status,
+                scope=term.scope,
+                matched=_dedupe_values(matched),
+                expansion=_dedupe_values(values),
+            )
+        )
+    matches.sort(key=lambda item: _normalize(item.term))
+    return VocabularyLookupReport(query=query, matches=matches)
+
+
 def _approved_token_groups(root: Path) -> list[set[str]]:
     groups: list[set[str]] = []
     for term in load_terms(root):
@@ -278,6 +322,21 @@ def _approved_token_groups(root: Path) -> list[set[str]]:
         if group:
             groups.append(group)
     return groups
+
+
+def _dedupe_values(values: Sequence[str]) -> list[str]:
+    out: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        cleaned = value.strip()
+        if not cleaned:
+            continue
+        key = _normalize(cleaned)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(cleaned)
+    return out
 
 
 def _concept_files(root: Path) -> list[Path]:
