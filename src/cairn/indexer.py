@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import math
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
@@ -55,6 +56,23 @@ class QueryDiagnostics:
     zero_hit_terms: list[str]
     relaxed_query: str
     relaxation_applied: bool
+    reason: str = ""
+
+
+@dataclass(frozen=True)
+class _SignalGroup:
+    tokens: list[str]
+    query: str
+    df: int
+    idf: float
+
+
+@dataclass(frozen=True)
+class _SignalState:
+    eligible_groups: list[_SignalGroup]
+    zero_hit_terms: list[str]
+    dropped_groups: int
+    total_signal_mass: float
 
 
 _INDEX_ERROR = "search index is missing or invalid; run `apollokairn index --rebuild`"
@@ -63,6 +81,16 @@ _HIGHLIGHT_END = "__CAIRN_HIGHLIGHT_END__"
 _BM25_WEIGHTS = (0.1, 1.5, 8.0, 4.0, 6.0, 6.0, 5.0, 5.0, 0.2, 3.0)
 _PASSAGE_BM25_WEIGHTS = (0.1, 1.5, 8.0, 6.0, 5.0, 4.0, 0.1, 0.1, 1.0, 3.0)
 _RRF_K = 60
+_MAX_RELAX_GROUPS = 8
+_MAX_RELAX_CANDIDATES = 20
+_MIN_DOCS_FOR_DF_LOW_SIGNAL = 30
+_MIN_DF_FOR_LOW_SIGNAL = 10
+_LOW_SIGNAL_DF_RATIO = 0.80
+_MIN_RELAX_MATCHED_GROUPS = 2
+_MIN_RELAX_COVERAGE = 0.60
+_MIN_RELAX_SIGNAL_MASS = 0.81
+_MIN_RELAX_SIGNAL_MASS_WITH_DROPS = 0.65
+_SINGLE_SURVIVOR_MAX_DROPPED = 1
 _RELAXATION_STOPWORDS = {
     "a",
     "an",
@@ -72,6 +100,7 @@ _RELAXATION_STOPWORDS = {
     "at",
     "be",
     "by",
+    "com",
     "da",
     "das",
     "de",
@@ -93,12 +122,16 @@ _RELAXATION_STOPWORDS = {
     "of",
     "on",
     "or",
+    "os",
     "ou",
     "para",
     "por",
+    "que",
     "sem",
     "the",
     "to",
+    "um",
+    "uma",
     "with",
 }
 
@@ -420,6 +453,127 @@ def _has_fts_match(con: sqlite3.Connection, table: str, query_text: str) -> bool
     ).fetchone() is not None
 
 
+def _fts_row_count(con: sqlite3.Connection, table: str) -> int:
+    _validate_fts_table(table)
+    return int(con.execute(f"SELECT count(*) FROM {table}").fetchone()[0])
+
+
+def _fts_match_count(con: sqlite3.Connection, table: str, query_text: str) -> int:
+    _validate_fts_table(table)
+    if not query_text:
+        return 0
+    return int(
+        con.execute(
+            f"SELECT count(*) FROM {table} WHERE {table} MATCH ?",
+            (query_text,),
+        ).fetchone()[0]
+    )
+
+
+def _is_low_signal_df(df: int, row_count: int) -> bool:
+    return (
+        row_count >= _MIN_DOCS_FOR_DF_LOW_SIGNAL
+        and df >= _MIN_DF_FOR_LOW_SIGNAL
+        and (df / row_count) >= _LOW_SIGNAL_DF_RATIO
+    )
+
+
+def _idf(row_count: int, df: int) -> float:
+    return math.log((row_count + 1) / (df + 1)) + 1.0
+
+
+def _signal_state(con: sqlite3.Connection, root: Path, table: str, query: str) -> _SignalState:
+    row_count = _fts_row_count(con, table)
+    eligible_groups: list[_SignalGroup] = []
+    zero_hit_terms: list[str] = []
+    dropped_groups = 0
+    for group in _query_term_groups(root, query):
+        if _is_stopword_group(group):
+            dropped_groups += 1
+            continue
+        group_query = _fts_query_from_group(group)
+        df = _fts_match_count(con, table, group_query)
+        if df <= 0:
+            zero_hit_terms.append(group[0])
+            dropped_groups += 1
+            continue
+        if _is_low_signal_df(df, row_count):
+            dropped_groups += 1
+            continue
+        eligible_groups.append(_SignalGroup(list(group), group_query, df, _idf(row_count, df)))
+    total_signal_mass = sum(group.idf for group in eligible_groups)
+    return _SignalState(eligible_groups, zero_hit_terms, dropped_groups, total_signal_mass)
+
+
+def _candidate_rowids(
+    con: sqlite3.Connection,
+    table: str,
+    query_text: str,
+    candidate_limit: int,
+) -> list[int]:
+    _validate_fts_table(table)
+    weights = _BM25_WEIGHTS if table == "docs" else _PASSAGE_BM25_WEIGHTS
+    return [
+        int(row[0])
+        for row in con.execute(
+            f"SELECT rowid, bm25({table}, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) AS score "
+            f"FROM {table} WHERE {table} MATCH ? ORDER BY score LIMIT ?",
+            (
+                *weights,
+                query_text,
+                candidate_limit,
+            ),
+        ).fetchall()
+    ]
+
+
+def _row_matches_query(con: sqlite3.Connection, table: str, rowid: int, query_text: str) -> bool:
+    _validate_fts_table(table)
+    return con.execute(
+        f"SELECT 1 FROM {table} WHERE rowid = ? AND {table} MATCH ? LIMIT 1",
+        (rowid, query_text),
+    ).fetchone() is not None
+
+
+def _cooccurrence_relaxed_query(
+    con: sqlite3.Connection,
+    table: str,
+    signal: _SignalState,
+) -> str:
+    if len(signal.eligible_groups) > _MAX_RELAX_GROUPS:
+        return ""
+    if len(signal.eligible_groups) == 1:
+        return signal.eligible_groups[0].query
+    candidate_query = " OR ".join(group.query for group in signal.eligible_groups)
+    best_groups: list[_SignalGroup] = []
+    best_key: tuple[float, float, int, int] | None = None
+    for rank, rowid in enumerate(_candidate_rowids(con, table, candidate_query, _MAX_RELAX_CANDIDATES)):
+        matched = [
+            group
+            for group in signal.eligible_groups
+            if _row_matches_query(con, table, rowid, group.query)
+        ]
+        if len(matched) < _MIN_RELAX_MATCHED_GROUPS:
+            continue
+        coverage = len(matched) / len(signal.eligible_groups)
+        signal_mass = sum(group.idf for group in matched)
+        signal_ratio = signal_mass / signal.total_signal_mass if signal.total_signal_mass else 0.0
+        min_signal_mass = (
+            _MIN_RELAX_SIGNAL_MASS_WITH_DROPS
+            if signal.dropped_groups
+            else _MIN_RELAX_SIGNAL_MASS
+        )
+        if coverage < _MIN_RELAX_COVERAGE or signal_ratio < min_signal_mass:
+            continue
+        key = (signal_ratio, coverage, len(matched), -rank)
+        if best_key is None or key > best_key:
+            best_key = key
+            best_groups = matched
+    if not best_groups:
+        return ""
+    return _fts_query_from_groups([group.tokens for group in best_groups])
+
+
 def _zero_hit_relaxation(
     con: sqlite3.Connection,
     root: Path,
@@ -428,22 +582,23 @@ def _zero_hit_relaxation(
     strict_query: str,
     strict_has_rows: bool,
 ) -> QueryDiagnostics:
+    signal = _signal_state(con, root, table, query)
+    if not signal.eligible_groups:
+        return QueryDiagnostics(strict_query, signal.zero_hit_terms, "", False, "no_signal")
     if strict_has_rows:
         return QueryDiagnostics(strict_query, [], "", False)
-    kept_groups: list[list[str]] = []
-    zero_hit_terms: list[str] = []
-    for group in _query_term_groups(root, query):
-        if _is_stopword_group(group):
-            continue
-        group_query = _fts_query_from_group(group)
-        if _has_fts_match(con, table, group_query):
-            kept_groups.append(group)
-        else:
-            zero_hit_terms.append(group[0])
-    relaxed_query = _fts_query_from_groups(kept_groups) if zero_hit_terms and kept_groups else ""
-    enough_signal = len(kept_groups) >= len(zero_hit_terms)
-    relaxation_applied = bool(relaxed_query and enough_signal and _has_fts_match(con, table, relaxed_query))
-    return QueryDiagnostics(strict_query, zero_hit_terms, relaxed_query, relaxation_applied)
+    relaxed_query = _cooccurrence_relaxed_query(con, table, signal)
+    enough_signal = not (
+        len(signal.eligible_groups) == 1
+        and signal.dropped_groups > _SINGLE_SURVIVOR_MAX_DROPPED
+    )
+    relaxation_applied = bool(
+        relaxed_query
+        and enough_signal
+        and _has_fts_match(con, table, relaxed_query)
+    )
+    reason = "" if relaxation_applied else "no_signal"
+    return QueryDiagnostics(strict_query, signal.zero_hit_terms, relaxed_query, relaxation_applied, reason)
 
 
 def query_diagnostics(root: Path, query: str, scope: str = "documents") -> QueryDiagnostics:
@@ -486,6 +641,10 @@ def _search_doc_rows_with_fallback(
     candidate_limit: int,
     diagnostics: list[QueryDiagnostics] | None = None,
 ) -> list[sqlite3.Row]:
+    signal = _signal_state(con, root, "docs", query)
+    if not signal.eligible_groups:
+        _append_diagnostics(diagnostics, QueryDiagnostics(query_text, signal.zero_hit_terms, "", False, "no_signal"))
+        return []
     expanded = expanded_fts_and_query(root, query)
     if expanded and expanded != query_text:
         rows = _search_doc_rows(con, expanded, max(candidate_limit, 100))
@@ -534,6 +693,10 @@ def _search_passage_rows_with_fallback(
     candidate_limit: int,
     diagnostics: list[QueryDiagnostics] | None = None,
 ) -> list[sqlite3.Row]:
+    signal = _signal_state(con, root, "passages", query)
+    if not signal.eligible_groups:
+        _append_diagnostics(diagnostics, QueryDiagnostics(query_text, signal.zero_hit_terms, "", False, "no_signal"))
+        return []
     expanded = expanded_fts_and_query(root, query)
     if expanded and expanded != query_text:
         rows = _search_passage_rows(con, expanded, max(candidate_limit, 100))

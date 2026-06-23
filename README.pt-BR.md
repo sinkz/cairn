@@ -12,7 +12,7 @@
   <p>
     <img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white">
     <img alt="Dependências de runtime: zero" src="https://img.shields.io/badge/dependencias_runtime-0-2f6f4e">
-    <img alt="Testes de regressão: 254" src="https://img.shields.io/badge/testes-254-3b6ea8">
+    <img alt="Testes de regressão: 258" src="https://img.shields.io/badge/testes-258-3b6ea8">
     <img alt="Recall at 3: 1.00" src="https://img.shields.io/badge/Recall%403-1.00-2f6f4e">
     <img alt="Redução de contexto: 92.78%" src="https://img.shields.io/badge/reducao_contexto-92.78%25-8a5a44">
     <img alt="Acurácia de decisão de escrita: 100%" src="https://img.shields.io/badge/escrita_decisoes-100%25-285da8">
@@ -53,7 +53,7 @@ atualizar vs criar.
 | Redução em comparativos | `53.73%` | Redução medida nas rodadas comparativas configuradas. |
 | Acurácia de decisão de escrita | `100%` | Decisões corretas de criar, atualizar, no-op e conflito no conjunto de fixtures. |
 | Prevenção de duplicatas | `100%` | Notas reutilizáveis existentes são atualizadas ou preservadas em vez de duplicadas. |
-| Testes de regressão | `254` | Testes unitários e de workflow rodados antes da publicação atual. |
+| Testes de regressão | `258` | Testes unitários e de workflow rodados antes da publicação atual. |
 
 Os dados do benchmark também são publicados no site por
 [`docs/data/benchmarks.json`](docs/data/benchmarks.json).
@@ -63,7 +63,7 @@ python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
 python bench/run_perf_eval.py --quiet --repeat 1
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 254
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 258
 ```
 
 ## Instalação Rápida
@@ -226,12 +226,12 @@ apollokairn search "deploy token rotation kubernetes secret" --path CAMINHO_DO_V
 apollokairn search "deploy 403 token" --path CAMINHO_DO_VAULT --json --explain
 ```
 
-Quando o BM25 estrito não encontra linhas porque um termo da consulta tem zero
-ocorrências no vault, a busca pode tentar de novo removendo esses termos sem
-hit. Stopwords não podem sobreviver como termo de match, e a relaxação só aplica
-quando sobram termos significativos suficientes. Ela não transforma termos que
-existem separadamente em uma consulta OR ampla. `--json --explain` relata isso
-em `query_diagnostics`.
+Quando o BM25 estrito não encontra linhas, a busca pode tentar de novo com uma
+consulta relaxada conservadora, formada por termos informativos que coocorrem no
+melhor candidato interno. Stopwords e termos sem sinal não podem sobreviver como
+termos de match, e consultas só de stopwords abstêm. A relaxação não transforma
+termos que existem separadamente em uma consulta OR ampla. `--json --explain`
+relata isso em `query_diagnostics`.
 
 Se seu time usa sinônimos estáveis como `k8s` e `kubernetes`, mantenha isso em
 `glossary.md` para a busca expandir vocabulário aprovado de forma
@@ -347,7 +347,7 @@ python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
 python bench/run_perf_eval.py --quiet --repeat 1
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 254
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 258
 ```
 
 Os benchmarks verificam qualidade de ranking, prefixos golden, orçamentos de

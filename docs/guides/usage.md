@@ -421,13 +421,13 @@ apollokairn search "deploy token rotation kubernetes secret" --path ~/brain --ra
 
 Use search before opening full documents. This is the main token-saving command.
 The default `bm25` ranker is strict and stable. It first tries the strict AND
-query. If that returns no rows because one or more query terms have zero hits
-anywhere in the index, it can retry after dropping those zero-hit terms.
-Stopwords are not eligible survivor terms, and relaxation only applies when
-enough meaningful terms remain. It does not OR together terms that exist
-separately, so genuine no-answer queries remain conservative. Use experimental
-`--ranker rrf` when the query may contain extra terms or lexical variants and
-you want ApolloKairn to fuse multiple cheap lexical runs.
+query. If that returns no rows, it can retry with a conservative relaxed query
+built from informative terms that co-occur in the best internal candidate.
+Stopwords and no-signal terms are not eligible survivor terms, and stopword-only
+queries abstain. It does not OR together terms that exist separately, so genuine
+no-answer queries remain conservative. Use experimental `--ranker rrf` when the
+query may contain extra terms or lexical variants and you want ApolloKairn to
+fuse multiple cheap lexical runs.
 If a top-level `glossary.md` exists, approved aliases are folded into the
 deterministic search flow so terms such as `k8s` and `kubernetes` can retrieve
 the same notes without hard-coded Python synonyms.
@@ -450,7 +450,7 @@ apollokairn search "cache stampede" --path ~/brain --json --explain
 `--explain` wraps results with deterministic ranking diagnostics: score, matched
 fields, matched query terms, and an explicit note that scores are not confidence.
 JSON explain output also includes `query_diagnostics` with `strict_query`,
-`zero_hit_terms`, `relaxed_query`, and `relaxation_applied`.
+`zero_hit_terms`, `relaxed_query`, `relaxation_applied`, and `reason`.
 
 ### `apollokairn retrieve`
 
@@ -692,7 +692,7 @@ python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
 python bench/run_perf_eval.py --quiet --repeat 1
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 254
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 258
 ```
 
 Benchmark topics may include `category`, `mode`, `compare_mode`, `ranker`, and

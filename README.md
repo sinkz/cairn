@@ -12,7 +12,7 @@
   <p>
     <img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white">
     <img alt="Runtime dependencies: zero" src="https://img.shields.io/badge/runtime_dependencies-0-2f6f4e">
-    <img alt="Regression tests: 254" src="https://img.shields.io/badge/tests-254-3b6ea8">
+    <img alt="Regression tests: 258" src="https://img.shields.io/badge/tests-258-3b6ea8">
     <img alt="Recall at 3: 1.00" src="https://img.shields.io/badge/Recall%403-1.00-2f6f4e">
     <img alt="Context reduction: 92.78%" src="https://img.shields.io/badge/context_reduction-92.78%25-8a5a44">
     <img alt="Writeback decision accuracy: 100%" src="https://img.shields.io/badge/writeback_decisions-100%25-285da8">
@@ -52,7 +52,7 @@ writeback decisions for update-vs-create workflows.
 | Comparison reduction | `53.73%` | Reduction measured in configured comparison runs. |
 | Writeback decision accuracy | `100%` | Correct create, update, no-op, and conflict decisions in the fixture set. |
 | Duplicate avoidance | `100%` | Existing reusable notes are updated or preserved instead of duplicated. |
-| Regression tests | `254` | Unit and workflow tests run before publishing the current page. |
+| Regression tests | `258` | Unit and workflow tests run before publishing the current page. |
 
 Benchmark data is also published on the website through
 [`docs/data/benchmarks.json`](docs/data/benchmarks.json).
@@ -62,7 +62,7 @@ python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
 python bench/run_perf_eval.py --quiet --repeat 1
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 254
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 258
 ```
 
 ## Quick Install
@@ -226,11 +226,11 @@ apollokairn search "deploy token rotation kubernetes secret" --path PATH_TO_VAUL
 apollokairn search "deploy 403 token" --path PATH_TO_VAULT --json --explain
 ```
 
-When strict BM25 finds no rows because one query term has zero hits in the
-vault, search can retry after dropping those zero-hit terms. Stopwords are not
-eligible survivor terms, and relaxation only applies when enough meaningful
-terms remain. It does not turn separately matching terms into a broad OR query.
-`--json --explain` reports this under `query_diagnostics`.
+When strict BM25 finds no rows, search can retry with a conservative relaxed
+query built from informative terms that co-occur in the best internal candidate.
+Stopwords and no-signal terms are not eligible survivor terms, and stopword-only
+queries abstain. Relaxation does not turn separately matching terms into a broad
+OR query. `--json --explain` reports this under `query_diagnostics`.
 
 If your team uses stable synonyms such as `k8s` and `kubernetes`, keep them in
 `glossary.md` so search can expand approved vocabulary deterministically:
@@ -344,7 +344,7 @@ python bench/run_eval.py --quiet --compare-golden bench/golden.json
 python bench/run_grep_baseline.py --quiet --compare-golden bench/grep-golden.json
 python bench/run_writeback_eval.py --quiet --compare-golden bench/writeback/golden.json
 python bench/run_perf_eval.py --quiet --repeat 1
-python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 254
+python bench/publish_metrics.py --output docs/data/benchmarks.json --tests 258
 ```
 
 The benchmarks check ranking quality, golden result prefixes, token budgets,

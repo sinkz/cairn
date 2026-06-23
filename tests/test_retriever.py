@@ -257,6 +257,34 @@ class RetrieverTests(unittest.TestCase):
             self.assertTrue(diagnostics["relaxation_applied"])
             self.assertEqual(payload["packet"]["sources"][0]["path"], "knowledge/deploy-credentials.md")
 
+    def test_cli_retrieve_json_explain_abstains_for_stopword_only_query(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            init_vault(root, profile_name="engineering")
+            write_concept(
+                root,
+                "formatting.md",
+                (
+                    "type: Decision",
+                    "title: Use Ruff for formatting",
+                    "description: Tooling decision for Python.",
+                    "tags: [tooling]",
+                    "timestamp: 2026-06-17T10:00:00Z",
+                ),
+                "# Context\n\nRuff is used for linting and formatting.\n",
+            )
+            run_cairn(root, "index", "--rebuild")
+
+            result = run_cairn(root, "retrieve", "the", "--budget", "300", "--json", "--explain")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["packet"]["source_count"], 0)
+            self.assertEqual(payload["packet"]["context"], "")
+            diagnostics = payload["query_diagnostics"]
+            self.assertEqual(diagnostics.get("reason"), "no_signal")
+            self.assertFalse(diagnostics["relaxation_applied"])
+
     def test_cli_retrieve_json_explain_abstains_when_relaxation_drops_most_terms(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
